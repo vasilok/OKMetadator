@@ -63,7 +63,7 @@
             }
         }];
     }
-    else if (phAsset.mediaType == PHAssetMediaTypeVideo)
+    else if (phAsset.mediaType == PHAssetMediaTypeVideo)  // ONLY MP4 !!!!!!!!
     {
         NSURL *tempURL = [Librarian tempVideoURL];
         [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {

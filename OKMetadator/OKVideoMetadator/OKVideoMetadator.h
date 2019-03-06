@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OKVideoMetadator : NSObject
 
-@property(nonatomic, copy) OKSphereMetaInjectorCompletion handler;
+@property(nonatomic, copy) OKSphereMetaInjectorCompletion completion;
 
 /*!
  * @abstract iTunes Metadata ????

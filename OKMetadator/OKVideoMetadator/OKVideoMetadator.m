@@ -124,9 +124,9 @@
     {
         [_exportSession exportAsynchronouslyWithCompletionHandler:^
          {
-             if (blockSelf.handler)
+             if (blockSelf.completion)
              {
-                 blockSelf.handler(blockSelf.exportSession.status == AVAssetExportSessionStatusCompleted);
+                 blockSelf.completion(blockSelf.exportSession.status == AVAssetExportSessionStatusCompleted);
              }
              [blockSelf setExportSession:nil];
          }];

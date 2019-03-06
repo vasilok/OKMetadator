@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		04097A8B222FC4F90048416C /* OKVideoMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 04097A8A222FC4F90048416C /* OKVideoMetadator.m */; };
-		04097A8E222FC7920048416C /* OKVideoSphericalMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 04097A8D222FC7920048416C /* OKVideoSphericalMetadator.m */; };
+		04097A8E222FC7920048416C /* OKVideoSphericalMetadator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04097A8D222FC7920048416C /* OKVideoSphericalMetadator.mm */; };
 		04097AAF222FC7CF0048416C /* box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097A92222FC7CF0048416C /* box.cpp */; };
 		04097AB0222FC7CF0048416C /* sa3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097A94222FC7CF0048416C /* sa3d.cpp */; };
 		04097AB1222FC7CF0048416C /* mpeg4_container.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097A97222FC7CF0048416C /* mpeg4_container.cpp */; };
@@ -44,7 +44,7 @@
 		04097A89222FC4F80048416C /* OKVideoMetadator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OKVideoMetadator.h; sourceTree = "<group>"; };
 		04097A8A222FC4F90048416C /* OKVideoMetadator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OKVideoMetadator.m; sourceTree = "<group>"; };
 		04097A8C222FC7920048416C /* OKVideoSphericalMetadator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OKVideoSphericalMetadator.h; sourceTree = "<group>"; };
-		04097A8D222FC7920048416C /* OKVideoSphericalMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKVideoSphericalMetadator.m; sourceTree = "<group>"; };
+		04097A8D222FC7920048416C /* OKVideoSphericalMetadator.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OKVideoSphericalMetadator.mm; sourceTree = "<group>"; };
 		04097A91222FC7CF0048416C /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
 		04097A92222FC7CF0048416C /* box.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = box.cpp; sourceTree = "<group>"; };
 		04097A93222FC7CF0048416C /* container.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = container.h; sourceTree = "<group>"; };
@@ -124,7 +124,7 @@
 				04097A89222FC4F80048416C /* OKVideoMetadator.h */,
 				04097A8A222FC4F90048416C /* OKVideoMetadator.m */,
 				04097A8C222FC7920048416C /* OKVideoSphericalMetadator.h */,
-				04097A8D222FC7920048416C /* OKVideoSphericalMetadator.m */,
+				04097A8D222FC7920048416C /* OKVideoSphericalMetadator.mm */,
 				04097A8F222FC7CF0048416C /* spatialmedia */,
 			);
 			path = OKVideoMetadator;
@@ -319,7 +319,7 @@
 				04097AB7222FC7CF0048416C /* mxml-file.c in Sources */,
 				0487D5E72228271100B63C66 /* AppDelegate.m in Sources */,
 				04097A8B222FC4F90048416C /* OKVideoMetadator.m in Sources */,
-				04097A8E222FC7920048416C /* OKVideoSphericalMetadator.m in Sources */,
+				04097A8E222FC7920048416C /* OKVideoSphericalMetadator.mm in Sources */,
 				04097ABF222FC7CF0048416C /* parser.cpp in Sources */,
 				04097AB6222FC7CF0048416C /* mxml-set.c in Sources */,
 				04097AB8222FC7CF0048416C /* mxml-search.c in Sources */,

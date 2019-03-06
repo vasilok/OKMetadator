@@ -145,7 +145,7 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
-    updParams[ProjectionType] = @"equirectangular";
+    updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);
     updParams[InitialViewRollDegrees] = @(0);
@@ -165,7 +165,7 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
-    updParams[ProjectionType] = @"equirectangular";
+    updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);
     updParams[InitialViewRollDegrees] = @(0);

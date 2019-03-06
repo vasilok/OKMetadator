@@ -96,13 +96,16 @@
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURL];
-        if ([_videoMetadator make180VideoAtURL:_URL withMetaParams:_meta writeToURL:tempURL]) {
-            [_librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
-            }];
-        }
+        [_videoMetadator make180VideoAtURL:_URL andWriteToURL:tempURL completion:^(BOOL success)
+         {
+             if (success) {
+                 [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
+                     if (success) {
+                         [[self navigationController] popViewControllerAnimated:YES];
+                     }
+                 }];
+             }
+         }];
     }
 }
 
@@ -121,13 +124,16 @@
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURL];
-        if ([_videoMetadator make360VideoAtURL:_URL withMetaParams:_meta writeToURL:tempURL]) {
-            [_librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
-            }];
-        }
+        [_videoMetadator make360VideoAtURL:_URL andWriteToURL:tempURL completion:^(BOOL success)
+         {
+            if (success) {
+                [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
+                    if (success) {
+                        [[self navigationController] popViewControllerAnimated:YES];
+                    }
+                }];
+            }
+         }];
     }
 }
 

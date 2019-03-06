@@ -79,6 +79,9 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define SourceCount       @"SourceCount"
 #define Timestamp         @"Timestamp"
 
+// value for ProjectionType only supported
+#define equirectangular @"equirectangular"
+
 // values for StereoMode key:
 #define mono       @"mono"
 #define left_right @"left-right"

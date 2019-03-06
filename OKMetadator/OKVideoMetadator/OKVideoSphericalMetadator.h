@@ -17,6 +17,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OKVideoSphericalMetadator : OKVideoMetadator
 
+
+/*!
+ * @brief Getter spherical meta params of video
+ * @param url indicates NSURL of original video
+ * @return set of params. NSDictionary
+ */
+- (nonnull NSDictionary *)sphericalMetaParamsVideoAtURL:(nonnull NSURL *)url;
+
+
 /*!
  * @abstract FABRICS METHODS FOR MAKING 360/180 VIDEO.
  */
@@ -26,33 +35,17 @@ NS_ASSUME_NONNULL_BEGIN
 * @brief export video with appended 360 spatial metadata
 * @param atUrl indicates NSURL of original video
 * @param toUrl indicates NSURL of desctination video
-* @return result
+* @param completion indicates success of operation. Calling in the Main queue.
 */
-- (BOOL)make360VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl;
-
-/*!
- * @brief export video with appended 360 spatial metadata
- * @param asset indicates AVAsset of original video
- * @param toUrl indicates NSURL of desctination video
- * @return result
- */
-- (BOOL)make360VideoAsset:(nonnull AVAsset *)asset andWritetoURL:(nonnull NSURL *)toUrl;
+- (void)make360VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief export video with appended 180 spatial metadata
  * @param atUrl indicates NSURL of original video
  * @param toUrl indicates NSURL of desctination video
- * @return result
+ * @param completion indicates success of operation. Calling in the Main queue.
  */
-- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl;
-
-/*!
- * @brief export video with appended 1860 spatial metadata
- * @param asset indicates AVAsset of original video
- * @param toUrl indicates NSURL of desctination video
- * @return result
- */
-- (BOOL)make180VideoAsset:(nonnull AVAsset *)asset andWritetoURL:(nonnull NSURL *)toUrl;
+- (void)make180VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief export video with appended 360 spatial and metadata
