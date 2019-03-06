@@ -1,0 +1,702 @@
+//
+//  VSImageSphericalMetadator.m
+//  VSMetadator
+//
+//  Created by Vasil_OK on 1/10/19.
+//  Copyright © 2019 Vasil_OK. All rights reserved.
+//
+
+#import "OKImageSphericalMetadator.h"
+#import <os/log.h>
+
+@implementation OKImageSphericalMetadator
+
+- (instancetype)init
+{
+    self = [super init];
+    
+    if (self)
+    {
+        _completionQueue = dispatch_get_main_queue();
+    }
+    
+    return self;
+}
+
+#pragma mark 360/180 Fabrics
+
+- (void)make360ImageAtURL:(nonnull NSURL *)url
+                outputURL:(nonnull NSURL *)outputURL
+               completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [self processMake360:YES imageAtURL:url outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (void)make180ImageAtURL:(nonnull NSURL *)url
+                outputURL:(nonnull NSURL *)outputURL
+               completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [self processMake360:NO imageAtURL:url outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (void)make360Image:(nonnull UIImage *)image
+            withMeta:(nullable OKMetaParam *)meta
+           outputURL:(nonnull NSURL *)outputURL
+          completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [blockSelf processMake360:YES image:image withMeta:meta outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (void)make180Image:(nonnull UIImage *)image
+            withMeta:(nullable OKMetaParam *)params
+           outputURL:(nonnull NSURL *)outputURL
+          completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [blockSelf processMake360:NO image:image withMeta:params outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (BOOL)make360ImageAtURL:(nonnull NSURL *)url
+                outputURL:(nonnull NSURL *)outputURL
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    return [self processMake360:YES imageAtURL:url outputURL:outputURL];
+}
+
+- (BOOL)make180ImageAtURL:(nonnull NSURL *)url
+                outputURL:(nonnull NSURL *)outputURL
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    return [self processMake360:NO imageAtURL:url outputURL:outputURL];
+}
+
+- (BOOL)make360Image:(nonnull UIImage *)image
+            withMeta:(nullable OKMetaParam *)meta
+           outputURL:(nonnull NSURL *)outputURL
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    return [self processMake360:YES image:image withMeta:meta outputURL:outputURL];
+}
+
+- (BOOL)make180Image:(nonnull UIImage *)image
+            withMeta:(nullable OKMetaParam *)meta
+           outputURL:(nonnull NSURL *)outputURL
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    return [self processMake360:NO image:image withMeta:meta outputURL:outputURL];
+}
+
+- (nonnull NSDictionary *)pano360ParamsWithSize:(CGSize)size
+{
+    NSMutableDictionary *updParams = [NSMutableDictionary new];
+    
+    updParams[ProjectionType] = @"equirectangular";
+    updParams[InitialViewHeadingDegrees] = @(0);
+    updParams[InitialViewPitchDegrees] = @(0);
+    updParams[InitialViewRollDegrees] = @(0);
+    updParams[InitialHorizontalFOVDegrees] = @(75.0);
+    updParams[PoseHeadingDegrees] = @(360);
+    updParams[FullPanoWidthPixels] = @(size.width);
+    updParams[FullPanoHeightPixels] = @(size.height);
+    updParams[CroppedAreaImageWidthPixels] = @(size.width);
+    updParams[CroppedAreaImageHeightPixels] = @(size.height);
+    updParams[CroppedAreaLeftPixels] = @(0);
+    updParams[CroppedAreaTopPixels] = @(0);
+    
+    return [updParams copy];
+}
+
+- (nonnull NSDictionary *)pano180ParamsWithSize:(CGSize)size
+{
+    NSMutableDictionary *updParams = [NSMutableDictionary new];
+    
+    updParams[ProjectionType] = @"equirectangular";
+    updParams[InitialViewHeadingDegrees] = @(0);
+    updParams[InitialViewPitchDegrees] = @(0);
+    updParams[InitialViewRollDegrees] = @(0);
+    updParams[InitialHorizontalFOVDegrees] = @(75.0);
+    updParams[PoseHeadingDegrees] = @(360);
+    updParams[FullPanoWidthPixels] = @(size.width * 2);
+    updParams[FullPanoHeightPixels] = @(size.height);
+    updParams[CroppedAreaImageWidthPixels] = @(size.width);
+    updParams[CroppedAreaImageHeightPixels] = @(size.height);
+    updParams[CroppedAreaLeftPixels] = @(size.width/2);
+    updParams[CroppedAreaTopPixels] = @(0);
+    
+    return [updParams copy];
+}
+
+- (CGFloat)pano360Aspect
+{
+    return 2;
+}
+
+- (CGFloat)pano180Aspect
+{
+    return 1;
+}
+
+#pragma mark Make Private
+
+- (BOOL)processMake360:(BOOL)is360
+            imageAtURL:(NSURL *)url
+             outputURL:(NSURL *)outputURL
+{
+    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
+    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
+    
+    NSDictionary *props = [self propertiesFromImageAtURL:url];
+    
+    CGSize size = CGSizeMake([props[(NSString *)kCGImagePropertyPixelWidth] intValue], [props[(NSString *)kCGImagePropertyPixelHeight] intValue]);
+    
+    CGFloat aspect = is360 ? [self pano360Aspect] : [self pano180Aspect];
+    CGFloat delta = aspect/(size.width/size.height);
+    CGSize renderSize = CGSizeMake(size.width * delta, size.height);
+    
+    NSDictionary *panoParams = is360 ? [self pano360ParamsWithSize:renderSize] : [self pano180ParamsWithSize:renderSize];
+    NSDictionary *allParams = [props mutableCopy];
+    [allParams setValuesForKeysWithDictionary:panoParams];
+    
+    BOOL result = NO;
+    if (size.width / size.height != aspect)
+    {
+        if ([self resizeAspect:aspect imageAtURL:url andWriteURL:tempURL])
+        {
+            result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams];
+            
+            [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
+        }
+    }
+    else
+    {
+        result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams];
+    }
+    
+    return result;
+}
+
+- (BOOL)processMake360:(BOOL)is360
+                 image:(UIImage *)image
+              withMeta:(nullable OKMetaParam *)meta
+             outputURL:(NSURL *)outputURL
+{
+    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
+    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
+    
+    CGSize size = CGSizeMake(image.size.width, image.size.height);
+    
+    CGFloat aspect = is360 ? [self pano360Aspect] : [self pano180Aspect];
+    CGFloat delta = aspect/(size.width/size.height);
+    CGSize renderSize = CGSizeMake(size.width * delta, size.height);
+    
+    NSDictionary *panoParams = is360 ? [self pano360ParamsWithSize:renderSize] : [self pano180ParamsWithSize:renderSize];
+    NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];
+    [allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
+    
+    BOOL result = NO;
+    if ([self resizeAspect:aspect image:image withProperties:nil andWriteURL:tempURL])
+    {
+        result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams];
+        
+        [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
+    }
+    
+    return result;
+}
+
+#pragma mark Custom Injection
+
+- (void)injectPanoToImageAtURL:(nonnull NSURL*)url
+                     outputURL:(nonnull NSURL *)outputURL
+                      withMeta:(nullable OKMetaParam *)meta
+                    completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [blockSelf processInjectionForImageURL:url output:outputURL withMetaParam:meta];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (BOOL)injectPanoToImageAtURL:(nonnull NSURL *)url
+                     outputURL:(nonnull NSURL *)outputURL
+                      withMeta:(nullable OKMetaParam *)meta
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    return [self processInjectionForImageURL:url output:outputURL withMetaParam:meta];
+}
+
+- (void)injectPanoToImage:(nonnull UIImage *)image
+                outputURL:(nonnull NSURL *)outputURL
+                 withMeta:(nullable OKMetaParam *)meta
+               completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [blockSelf processInjectionForImage:image output:outputURL withMetaParam:meta];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (BOOL)injectPanoToImage:(nonnull UIImage *)image
+                outputURL:(nonnull NSURL *)outputURL
+                 withMeta:(nullable OKMetaParam *)meta
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    return [self processInjectionForImage:image output:outputURL withMetaParam:meta];
+}
+
+- (nullable NSDictionary *)extractPanoFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return nil;
+    }
+    
+    CGImageMetadataRef metadata = CGImageSourceCopyMetadataAtIndex(source, 0, NULL);
+    if (metadata == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not getting metadata from source");
+        CFRelease(source);
+        return nil;
+    }
+    
+    NSMutableDictionary *dict = [NSMutableDictionary new];
+    
+    CGImageMetadataEnumerateTagsUsingBlock(metadata, NULL, NULL, ^bool(CFStringRef  _Nonnull path, CGImageMetadataTagRef  _Nonnull tag) {
+        
+        NSString *prefix = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyPrefix(tag));
+        NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(tag));
+        NSString *namespace = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyNamespace(tag));
+        NSString *value = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyValue(tag));
+        
+        if ([namespace isEqualToString:(NSString *)PanoNamespace])
+        {
+            [dict setObject:value forKey:[NSString stringWithFormat:@"%@:%@", prefix, name]];
+        }
+        return true;
+    });
+    
+    CFRelease(source);
+    CFRelease(metadata);
+    
+    return [dict copy];
+}
+
+#pragma mark Private
+
+- (BOOL)processInjectionForImage:(UIImage *)image
+                          output:(NSURL *)outputURL
+                   withMetaParam:(OKMetaParam *)param
+{
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create source from image");
+        return NO;
+    }
+    
+    BOOL result = [self processInjectionForImage:image.CGImage source:source output:outputURL withMetaParam:param];
+    
+    CFRelease(source);
+    
+    return result;
+}
+
+- (BOOL)processInjectionForImageURL:(NSURL *)url
+                             output:(NSURL *)outputURL
+                      withMetaParam:(nullable NSDictionary *)param
+{
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return NO;
+    }
+    
+    CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+    
+    if (image == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image from source");
+        CFRelease(source);
+        return NO;
+    }
+    
+    BOOL result = [self processInjectionForImage:image source:source output:outputURL withMetaParam:param];
+    
+    CGImageRelease(image);
+    CFRelease(source);
+    
+    return result;
+}
+
+- (BOOL)processInjectionForImage:(CGImageRef)image
+                          source:(CGImageSourceRef)source
+                          output:(NSURL *)outputURL
+                   withMetaParam:(nullable OKMetaParam *)param
+{
+    CGFloat width = CGImageGetWidth(image);
+    CGFloat height = CGImageGetHeight(image);
+    os_log_debug(OS_LOG_DEFAULT, "Image width: %f, height: %f", width, height);
+    
+    CGImageMetadataRef metadata = CGImageSourceCopyMetadataAtIndex(source, 0, NULL);
+    if (metadata == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create metadata");
+        return NO;
+    }
+    os_log_info(OS_LOG_DEFAULT, "Input meta:\n%@", metadata);
+    
+    CGMutableImageMetadataRef destMetadata = CGImageMetadataCreateMutableCopy(metadata);
+    
+    NSDictionary *panoParam = param[(NSString *)PanoNamespace];
+    if ([self setPanoParams:panoParam imageSize:CGSizeMake(width, height) toMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting Pano params fails");
+    }
+    
+    NSDictionary *googleParam = param[(NSString *)GoogleNamespace];
+    if ([self setGoogleParams:googleParam toMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting Google params fails");
+    }
+    
+    NSDictionary *appleParam = param[(NSString *)AppleNamespace];
+    if ([self setAppleParams:appleParam toMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting Apple params fails");
+    }
+    
+    NSMutableDictionary *other = [param mutableCopy];
+    [other removeObjectForKey:PanoNamespace];
+    [other removeObjectForKey:GoogleNamespace];
+    [other removeObjectForKey:AppleNamespace];
+    if ([self setOtherParams:[other copy] toMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting other params fails");
+    }
+    
+    NSMutableData *destData = [NSMutableData data];
+    CFStringRef UTI = CGImageSourceGetType(source);
+    CGImageDestinationRef destination = CGImageDestinationCreateWithData((CFMutableDataRef)destData,UTI,1,NULL);
+    
+    if(destination == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image destination");
+        CFRelease(metadata);
+        CFRelease(destMetadata);
+        return NO;
+    }
+    CGImageDestinationAddImageAndMetadata(destination, image, destMetadata, NULL);
+    
+    //CGImageDestinationSetProperties(destination, <#CFDictionaryRef  _Nullable properties#>)
+    
+    if(CGImageDestinationFinalize(destination) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not make image finalizing");
+        CFRelease(metadata);
+        CFRelease(destMetadata);
+        CFRelease(destination);
+        return NO;
+    }
+    
+    if([destData writeToURL:outputURL atomically:YES] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not write image data at URL: %@", outputURL);
+        CFRelease(metadata);
+        CFRelease(destMetadata);
+        CFRelease(destination);
+        
+        return NO;
+    }
+    os_log_info(OS_LOG_DEFAULT, "Injected image meta:\n%@", destMetadata);
+    
+    CFRelease(metadata);
+    CFRelease(destMetadata);
+    CFRelease(destination);
+    
+    return YES;
+}
+
+- (BOOL)setPanoParams:(NSDictionary *)params
+            imageSize:(CGSize)size
+               toMeta:(CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)PanoNamespace, (CFStringRef)GPano, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", PanoNamespace, error);
+        return NO;
+    }
+    
+    NSNumber *width = params[FullPanoWidthPixels];
+    if (width == nil) width = @(size.width);
+    [self setTagForPanoKey:FullPanoWidthPixels value:(__bridge CFTypeRef)(width) toMeta:meta];
+    
+    NSNumber *height = params[FullPanoHeightPixels];
+    if (height == nil) height = @(size.height);
+    [self setTagForPanoKey:FullPanoHeightPixels value:(__bridge CFTypeRef)(height) toMeta:meta];
+    
+    [self setTagForPanoKey:ProjectionType value:(__bridge CFTypeRef)(@"equirectangular") toMeta:meta];
+    
+    [self setTagForPanoKey:UsePanoramaViewer value:@"True" toMeta:meta];
+    
+    NSNumber *heading = params[PoseHeadingDegrees];
+    if (heading != nil) {
+        [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)(heading) toMeta:meta];
+    }
+    else {
+        [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)@"360" toMeta:meta];
+    }
+    
+    NSNumber *pitch = params[PosePitchDegrees];
+    if (pitch != nil) {
+        [self setTagForPanoKey:PosePitchDegrees value:(__bridge CFTypeRef)(pitch) toMeta:meta];
+    }
+    
+    NSNumber *roll = params[PoseRollDegrees];
+    if (roll != nil) {
+        [self setTagForPanoKey:PoseRollDegrees value:(__bridge CFTypeRef)(roll) toMeta:meta];
+    }
+    
+    NSNumber *initHeading = params[InitialViewHeadingDegrees];
+    if (initHeading != nil) {
+        [self setTagForPanoKey:InitialViewHeadingDegrees value:(__bridge CFTypeRef)(initHeading) toMeta:meta];
+    }
+    
+    NSNumber *initPitch = params[InitialViewPitchDegrees];
+    if (initPitch != nil) {
+        [self setTagForPanoKey:InitialViewPitchDegrees value:(__bridge CFTypeRef)(initPitch) toMeta:meta];
+    }
+    
+    NSNumber *initRoll = params[InitialViewRollDegrees];
+    if (initRoll != nil) {
+        [self setTagForPanoKey:InitialViewRollDegrees value:(__bridge CFTypeRef)(initRoll) toMeta:meta];
+    }
+    
+    NSNumber *hfov = params[InitialHorizontalFOVDegrees];
+    if (hfov != nil) {
+        [self setTagForPanoKey:InitialHorizontalFOVDegrees value:(__bridge CFTypeRef)(hfov) toMeta:meta];
+    }
+    
+    NSNumber *vfov = params[InitialVerticalFOVDegrees];
+    if (vfov != nil) {
+        [self setTagForPanoKey:InitialVerticalFOVDegrees value:(__bridge CFTypeRef)(vfov) toMeta:meta];
+    }
+    
+    NSNumber *cropLeft = params[CroppedAreaLeftPixels];
+    if (cropLeft != nil) {
+        [self setTagForPanoKey:CroppedAreaLeftPixels value:(__bridge CFTypeRef)(cropLeft) toMeta:meta];
+    }
+    
+    NSNumber *cropHeight = params[CroppedAreaImageHeightPixels];
+    if (cropHeight != nil) {
+        [self setTagForPanoKey:CroppedAreaImageHeightPixels value:(__bridge CFTypeRef)(cropHeight) toMeta:meta];
+    }
+    
+    NSNumber *cropTop = params[CroppedAreaTopPixels];
+    if (cropTop != nil) {
+        [self setTagForPanoKey:CroppedAreaTopPixels value:(__bridge CFTypeRef)(cropTop) toMeta:meta];
+    }
+    
+    NSNumber *cropWidth = params[CroppedAreaImageWidthPixels];
+    if (cropWidth != nil) {
+        [self setTagForPanoKey:CroppedAreaImageWidthPixels value:(__bridge CFTypeRef)(cropWidth) toMeta:meta];
+    }
+    
+    NSString *firstPhotoDate = params[FirstPhotoDate];
+    if (firstPhotoDate != nil) {
+        [self setTagForPanoKey:FirstPhotoDate value:(__bridge CFTypeRef)(firstPhotoDate) toMeta:meta];
+    }
+    
+    NSString *lastPhotoDate = params[LastPhotoDate];
+    if (lastPhotoDate != nil) {
+        [self setTagForPanoKey:LastPhotoDate value:(__bridge CFTypeRef)(lastPhotoDate) toMeta:meta];
+    }
+    
+    NSNumber *photosCount = params[SourcePhotosCount];
+    if (photosCount != nil) {
+        [self setTagForPanoKey:SourcePhotosCount value:(__bridge CFTypeRef)(photosCount) toMeta:meta];
+    }
+    
+    NSNumber *lock = params[ExposureLockUsed];
+    if (lock != nil) {
+        [self setTagForPanoKey:ExposureLockUsed value:(__bridge CFTypeRef)(lock) toMeta:meta];
+    }
+    
+    return YES;
+}
+
+- (BOOL)setTagForPanoKey:(const NSString *)key
+                   value:(CFTypeRef)value
+                  toMeta:(CGMutableImageMetadataRef)meta
+{
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)PanoNamespace,
+                             (CFStringRef)GPano,
+                             (CFStringRef)key,
+                             kCGImageMetadataTypeString,
+                             value);
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(GPano, key), tag);
+    
+    if (result == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Error set Pano %@ with %@", key, value);
+    }
+    CFRelease(tag);
+    
+    return result;
+}
+
+- (BOOL)setGoogleParams:(NSDictionary *)params toMeta:(CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)GoogleNamespace, (CFStringRef)GImage, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", GoogleNamespace, error);
+        return NO;
+    }
+    
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)GoogleNamespace,
+                             (CFStringRef)GImage,
+                             (CFStringRef)Mime,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"image/jpeg");
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(GImage, Mime), tag);
+    CFRelease(tag);
+    
+    return result;
+}
+
+- (BOOL)setAppleParams:(NSDictionary *)params toMeta:(CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AppleNamespace, (CFStringRef)ImageIO, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", AppleNamespace, error);
+        return NO;
+    }
+    
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)AppleNamespace,
+                             (CFStringRef)ImageIO,
+                             (CFStringRef)hasXMP,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"true");
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(ImageIO, hasXMP), tag);
+    CFRelease(tag);
+    
+    return result;
+}
+
+- (BOOL)setOtherParams:(OKMetaParam *)params toMeta:(CGMutableImageMetadataRef)meta
+{
+    __block BOOL result = YES;
+    CGImageMetadataRef otherMeta = [self metadataFromMetaParams:params];
+    CGImageMetadataEnumerateTagsUsingBlock(otherMeta, NULL, NULL, ^bool(CFStringRef  _Nonnull path, CGImageMetadataTagRef  _Nonnull tag) {
+        NSString *namespace = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyNamespace(tag));
+        NSString *prefix = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyPrefix(tag));
+        CFErrorRef error;
+        if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)namespace, (CFStringRef)prefix, &error) == NO)
+        {
+            os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", namespace, error);
+            return NO;
+        }
+        if(CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)path, tag) == NO)
+        {
+            result = NO;
+        }
+        return true;
+    });
+    
+    return result;
+}
+
+@end
