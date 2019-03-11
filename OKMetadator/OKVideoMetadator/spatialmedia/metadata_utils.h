@@ -50,6 +50,10 @@ static std::string SPHERICAL_XML_CONTENTS = "<GSpherical:Spherical>true</GSpheri
     "<GSpherical:StitchingSoftware>Spherical Metadata Tool</GSpherical:StitchingSoftware>"\
     "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>";
 
+static std::string SPHERICAL_XML_CONTENTS_WITHOUT_SOFTWARE = "<GSpherical:Spherical>true</GSpherical:Spherical>"\
+"<GSpherical:Stitched>true</GSpherical:Stitched>"\
+"<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>";
+
 static std::string SPHERICAL_XML_CONTENTS_TOP_BOTTOM = "<GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>";
 static std::string SPHERICAL_XML_CONTENTS_LEFT_RIGHT = "<GSpherical:StereoMode>left-right</GSpherical:StereoMode>";
 
@@ -141,6 +145,7 @@ class Utils
     ParsedMetadata * parse_metadata  ( std::string & );
     void inject_metadata ( std::string &, std::string &, Metadata * );
     std::string &generate_spherical_xml ( SpatialMedia::Parser::enMode, int * );
+    std::string &generate_spherical_xml ( SpatialMedia::Parser::enMode stereo, int *crop, std::string );
     uint8_t get_descriptor_length  ( std::fstream & );
     int32_t get_expected_num_audio_components ( std::string &, uint32_t );
     int32_t  get_num_audio_channels ( Container *, std::fstream & );

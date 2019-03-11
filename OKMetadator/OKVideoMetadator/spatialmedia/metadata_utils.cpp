@@ -634,6 +634,71 @@ std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo
   return m_strSphericalXML;
 }
 
+std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo, int *crop, std::string software )
+{
+    // Configure inject xml
+    static std::string empty;
+    std::string additional_xml;
+    
+    std::string software_xml = "<GSpherical:StitchingSoftware>" + software + "</GSpherical:StitchingSoftware>";
+    
+    if ( stereo == SpatialMedia::Parser::SM_TOP_BOTTOM ) {
+        additional_xml += SPHERICAL_XML_CONTENTS_TOP_BOTTOM;
+    }
+    if ( stereo == SpatialMedia::Parser::SM_LEFT_RIGHT ) {
+        additional_xml += SPHERICAL_XML_CONTENTS_LEFT_RIGHT;
+    }
+    
+    if ( crop )  {
+        //  -c CROP, --crop CROP  crop region. Must specify 6 integers in the form of
+        //                        "w:h:f_w:f_h:x:y" where w=CroppedAreaImageWidthPixels
+        //                        h=CroppedAreaImageHeightPixels f_w=FullPanoWidthPixels
+        //                        f_h=FullPanoHeightPixels x=CroppedAreaLeftPixels
+        //                        y=CroppedAreaTopPixels
+        int cropped_width_pixels      = crop[0];
+        int cropped_height_pixels     = crop[1];
+        int full_width_pixels         = crop[2];
+        int full_height_pixels        = crop[3];
+        int cropped_offset_left_pixels= crop[4];
+        int cropped_offset_top_pixels = crop[5];
+        // This should never happen based on the crop regex.
+        if ( full_width_pixels <= 0 || full_height_pixels <= 0 )  {
+            std::cerr << "Error with crop params: full pano dimensions are ";
+            std::cerr << "invalid: width = " << full_width_pixels << " height = " << full_height_pixels;
+            return empty;
+        }
+        if ( cropped_width_pixels <= 0 || cropped_height_pixels <= 0 ||
+            cropped_width_pixels > full_width_pixels || cropped_height_pixels > full_height_pixels )  {
+            std::cerr << "Error with crop params: cropped area dimensions are ";
+            std::cerr << "invalid: width = " << cropped_width_pixels << " height = " << cropped_height_pixels;
+            return empty;
+        }
+        // We are pretty restrictive and don't allow anything strange. There
+        // could be use-cases for a horizontal offset that essentially
+        // translates the domain, but we don't support this (so that no
+        // extra work has to be done on the client).
+        int total_width  = cropped_offset_left_pixels + cropped_width_pixels;
+        int total_height = cropped_offset_top_pixels + cropped_height_pixels;
+        if ( cropped_offset_left_pixels  < 0 || cropped_offset_top_pixels < 0 ||
+            total_width > full_width_pixels || total_height > full_height_pixels )  {
+            std::cerr << "Error with crop params: cropped area offsets are ";
+            std::cerr << "invalid: left = " << cropped_offset_left_pixels << " top = " << cropped_offset_top_pixels;
+            std::cerr << " left+cropped width: " << total_width << "top+cropped height: " << total_height;
+            return empty;
+        }
+        // OMG: printf need to fall back to ugly-ass c-style
+        int   iSize  = SPHERICAL_XML_CONTENTS_CROP_FORMAT.length ( ) + 6 * 5; // 6 variables up to 99999
+        char *buffer = new char[iSize];
+        snprintf ( buffer, iSize, SPHERICAL_XML_CONTENTS_CROP_FORMAT.c_str ( ), cropped_width_pixels, cropped_height_pixels,
+                  full_width_pixels, full_height_pixels,cropped_offset_left_pixels, cropped_offset_top_pixels );
+        additional_xml += buffer;
+        delete buffer;
+    }
+    
+    m_strSphericalXML = SPHERICAL_XML_HEADER + SPHERICAL_XML_CONTENTS_WITHOUT_SOFTWARE + software_xml + additional_xml + SPHERICAL_XML_FOOTER;
+    return m_strSphericalXML;
+}
+
 uint8_t Utils::get_descriptor_length ( std::fstream &inFile )
 {
   // Derives the length of the MP4 elementary stream descriptor at the

@@ -131,13 +131,13 @@
 + (NSURL *)tempImageURLWithExtension:(NSString *)ext
 {
     NSString *tempName = [NSString stringWithFormat:@"TI%ld", (long)CFAbsoluteTimeGetCurrent()];
-    return [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:ext]] filePathURL];
+    return [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:ext ? ext : @"jpg"]] filePathURL];
 }
 
 + (NSURL *)tempVideoURLWithExtension:(NSString *)ext
 {
     NSString *tempName = [NSString stringWithFormat:@"TV%ld", (long)CFAbsoluteTimeGetCurrent()];
-    return [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:ext]] filePathURL];
+    return [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:ext ? ext : @"mp4"]] filePathURL];
 }
 
 - (void)clearTempFolder

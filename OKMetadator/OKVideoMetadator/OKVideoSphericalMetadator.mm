@@ -249,7 +249,8 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     Utils utils;
     if ( parser.getInject ( ) )  {
         Metadata md;
-        std::string &strVideoXML = utils.generate_spherical_xml ( parser.getStereoMode ( ), parser.getCrop ( ) );
+        std::string sowfware = metaParam[StitchingSoftware] ? [metaParam[StitchingSoftware] UTF8String] : [@"" UTF8String];
+        std::string &strVideoXML = utils.generate_spherical_xml ( parser.getStereoMode ( ), parser.getCrop ( ), sowfware );
         md.setVideoXML ( strVideoXML );
         utils.inject_metadata ( parser.getInFile ( ), parser.getOutFile ( ), &md );
         

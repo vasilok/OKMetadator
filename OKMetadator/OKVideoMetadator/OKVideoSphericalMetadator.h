@@ -17,7 +17,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OKVideoSphericalMetadator : OKVideoMetadator
 
-
 /*!
  * @brief Getter spherical meta params of video
  * @param url indicates NSURL of original video
