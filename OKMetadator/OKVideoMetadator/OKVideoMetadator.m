@@ -30,7 +30,7 @@
     NSAssert(asset, @"Unexpected NIL!");
     
     NSArray<AVMetadataItem *> *items = asset.metadata;
-    
+
     OKMetaParam *params = [self metaParamsFromItems:items];
     
     return params;

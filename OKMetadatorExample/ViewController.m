@@ -49,10 +49,11 @@
     [picker dismissViewControllerAnimated:YES completion:^{ }];
     
     PHAsset *phAsset = [info objectForKey:UIImagePickerControllerPHAsset];
+    NSString *ext = [[info objectForKey:UIImagePickerControllerMediaURL] pathExtension];
 
     if (phAsset.mediaType == PHAssetMediaTypeImage)
     {
-        NSURL *tempURL = [Librarian tempImageURL];
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
         [_librarian fetchImage:phAsset toURL:tempURL withCompletion:^(BOOL success) {
             if (success)
             {
@@ -65,7 +66,7 @@
     }
     else if (phAsset.mediaType == PHAssetMediaTypeVideo)  // ONLY MP4 !!!!!!!!
     {
-        NSURL *tempURL = [Librarian tempVideoURL];
+        NSURL *tempURL = [Librarian tempVideoURLWithExtension:ext];
         [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {
             if (success)
             {
@@ -84,7 +85,7 @@
         NSLog(@"Picker Image Orientation - %ld", image.imageOrientation);
         
         NSError *error;
-        NSURL *tempURL = [Librarian tempImageURL];
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
         if ([UIImageJPEGRepresentation(image, 1) writeToURL:tempURL atomically:YES] == NO)
         {
             NSLog(@"Errro: %@", error);

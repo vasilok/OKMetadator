@@ -138,6 +138,7 @@ std::vector<Box *> Container::load_multiple ( std::fstream &fs, uint32_t iPos, u
       std::cerr << "Error, failed to load box." << std::endl;
       clear ( list );
       return empty;
+     //   break;
     }
     list.push_back ( pBox );
     iPos = pBox->m_iPosition + pBox->size ( );

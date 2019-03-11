@@ -10,7 +10,30 @@
 #import "metadata_utils.h"
 #import <AVFoundation/AVFoundation.h>
 
+typedef void (^OKVideoConverterCompletion)(NSURL *);
+
+@interface OKVideoSphericalMetadator ()
+@property(nonatomic, strong) OKVideoMetadator *converter;
+@end
+
 @implementation OKVideoSphericalMetadator
+
+- (nonnull OKMetaParam *)metaParamsFromVideoAtURL:(nonnull NSURL *)url
+{
+    OKMetaParam *param = [super metaParamsFromVideoAtURL:url];
+    
+    NSDictionary *spherical = [self sphericalMetaParamsVideoAtURL:url];
+    
+    if (spherical.allValues.count > 0)
+    {
+        NSMutableDictionary *mutParams = [param mutableCopy];
+        [mutParams setObject:spherical forKey:SphericalVideo];
+        
+        param = [mutParams copy];
+    }
+    
+    return param;
+}
 
 - (nonnull NSDictionary *)sphericalMetaParamsVideoAtURL:(nonnull NSURL *)url
 {
@@ -23,20 +46,24 @@
 {
     NSAssert(atUrl, @"Unexpected NIL!");
     
+    [self setCompletion:completion];
+    
+    __typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
                    {
-                       AVAsset *asset = [AVAsset assetWithURL:atUrl];
-                       CGSize size = [[[asset tracksWithMediaType:AVMediaTypeVideo] firstObject] naturalSize];
-                       
-                       BOOL result = [self processInjectSpatialMeta:[self spatial360ParamsWithSize:size]
-                                                              atURL:atUrl
-                                                              toURL:toUrl];
-                       
-                       if (completion) {
-                           dispatch_async(dispatch_get_main_queue(), ^
-                                          {
-                                              completion(result);
-                                          });
+                       if ([atUrl.pathExtension isEqualToString:@"mp4"] ||
+                           [atUrl.pathExtension isEqualToString:@"MP4"])
+                       {
+                           [blockSelf processInject360:YES from:atUrl to:toUrl];
+                       }
+                       else
+                       {
+                           [blockSelf convertToMP4VideoAt:atUrl completion:^(NSURL *convertedURL)
+                            {
+                                [blockSelf processInject360:YES from:convertedURL to:toUrl];
+                                
+                                [[NSFileManager defaultManager] removeItemAtURL:convertedURL error:nil];
+                            }];
                        }
                    });
 }
@@ -45,20 +72,25 @@
 {
     NSAssert(atUrl, @"Unexpected NIL!");
     
+    [self setCompletion:completion];
+    
+    __typeof(self) blockSelf = self;
+    
     dispatch_async(dispatch_get_global_queue(0, 0), ^
                    {
-                       AVAsset *asset = [AVAsset assetWithURL:atUrl];
-                       CGSize size = [[[asset tracksWithMediaType:AVMediaTypeVideo] firstObject] naturalSize];
-                       
-                       BOOL result = [self processInjectSpatialMeta:[self spatial180ParamsWithSize:size]
-                                                              atURL:atUrl
-                                                              toURL:toUrl];
-                       
-                       if (completion) {
-                           dispatch_async(dispatch_get_main_queue(), ^
-                                          {
-                                              completion(result);
-                                          });
+                       if ([atUrl.pathExtension isEqualToString:@"mp4"] ||
+                           [atUrl.pathExtension isEqualToString:@"MP4"])
+                       {
+                           [blockSelf processInject360:NO from:atUrl to:toUrl];
+                       }
+                       else
+                       {
+                           [blockSelf convertToMP4VideoAt:atUrl completion:^(NSURL *convertedURL)
+                            {
+                                [blockSelf processInject360:NO from:convertedURL to:toUrl];
+                                
+                                [[NSFileManager defaultManager] removeItemAtURL:convertedURL error:nil];
+                            }];
                        }
                    });
 }
@@ -136,16 +168,51 @@
 - (NSDictionary *)processExtractSpatialMetaAtURL:(NSURL *)url
 {
     std::string inputPath = std::string([[url path] UTF8String]);
-    SpatialMedia::Parser parser;
-    parser.getInFile() = inputPath;
-    
-    SpatialMedia::Parser::enMode enMode =  parser.getStereoMode( );
-    int *crop =  parser.getCrop();
-    
     Utils utils;
+    ParsedMetadata *meta = utils.parse_metadata(inputPath);
     
+    if (!meta) {
+        return @{};
+    }
     
-    return @{};
+    std::map<std::string, ParsedMetadata::videoEntry> videoXML = meta->m_video;
+    std::map<std::string, ParsedMetadata::videoEntry>::iterator it = videoXML.begin();
+    NSMutableDictionary *dict = [NSMutableDictionary new];
+    
+    while ( it != videoXML.end ( ) )  {
+        ParsedMetadata::videoEntry value = it->second;
+        
+        std::map<std::string, std::string>::iterator it2 = value.begin();
+        while (it2 != value.end()) {
+            std::string key = it2->first;
+            std::string val = it2->second;
+            
+            [dict setObject:[NSString stringWithCString:val.c_str() encoding:NSUTF8StringEncoding]
+                     forKey:[NSString stringWithCString:key.c_str() encoding:NSUTF8StringEncoding]];
+            it2++;
+        }
+        
+        it++;
+    }
+    
+    return [dict copy];
+}
+
+- (void)processInject360:(BOOL)is360 from:(NSURL *)fromURL to:(NSURL *)toURL
+{
+    AVAsset *asset = [AVAsset assetWithURL:fromURL];
+    CGSize size = [[[asset tracksWithMediaType:AVMediaTypeVideo] firstObject] naturalSize];
+    
+    BOOL result = [self processInjectSpatialMeta:is360 ? [self spatial360ParamsWithSize:size] : [self spatial180ParamsWithSize:size]
+                                           atURL:fromURL
+                                           toURL:toURL];
+    
+    if (self.completion) {
+        dispatch_async(dispatch_get_main_queue(), ^
+                       {
+                           self.completion(result);
+                       });
+    }
 }
 
 - (BOOL)processInjectSpatialMeta:(NSDictionary *)metaParam atURL:(NSURL *)url toURL:(NSURL *)toURL
@@ -190,6 +257,27 @@
     }
     
     return NO;
+}
+
+#pragma mark Converter
+
+- (void)convertToMP4VideoAt:(NSURL *)url completion:(OKVideoConverterCompletion)completion
+{
+    NSString *tempName = [NSString stringWithFormat:@"OKT%ld", (long)CFAbsoluteTimeGetCurrent()];
+    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"mp4"]] filePathURL];
+    
+    _converter = [OKVideoMetadator new];
+    [_converter setCompletion:^(BOOL success)
+     {
+         if (completion) {
+             dispatch_async(dispatch_get_main_queue(), ^
+                            {
+                                completion(success ? tempURL : nil);
+                            });
+         }
+     }];
+    
+    [_converter writeVideoAtURL:url withMetaParams:nil toURL:tempURL];
 }
 
 @end

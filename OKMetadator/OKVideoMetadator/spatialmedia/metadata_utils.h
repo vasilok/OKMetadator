@@ -32,7 +32,7 @@
 
 // Utilities for examining/injecting spatial media metadata in MP4/MOV files."""
 
-static const char *MPEG_FILE_EXTENSIONS[3] = { ".mp4", ".mov", ".MP4" };
+static const char *MPEG_FILE_EXTENSIONS[4] = { ".mp4", ".mov", ".MP4", ".MOV" };
 
 static const uint8_t SPHERICAL_UUID_ID[] = {0xff, 0xcc, 0x82, 0x63, 0xf8, 0x55, 0x4a, 0x93, 0x88, 0x14, 0x58, 0x7a, 0x02, 0x52, 0x1f, 0xdd };
 //    "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd")
@@ -136,9 +136,9 @@ class Utils
     bool inject_spatial_audio_atom( std::fstream &, Box *, AudioMetadata * );
     std::map<std::string, std::string> parse_spherical_xml ( uint8_t * ); // return sphericalDictionary
     ParsedMetadata *parse_spherical_mpeg4 ( Mpeg4Container *,std::fstream & ); // return metadata
-    void parse_mpeg4     ( std::string & );
+    ParsedMetadata * parse_mpeg4     ( std::string & );
     void inject_mpeg4    ( std::string &, std::string &, Metadata * );
-    void parse_metadata  ( std::string & );
+    ParsedMetadata * parse_metadata  ( std::string & );
     void inject_metadata ( std::string &, std::string &, Metadata * );
     std::string &generate_spherical_xml ( SpatialMedia::Parser::enMode, int * );
     uint8_t get_descriptor_length  ( std::fstream & );

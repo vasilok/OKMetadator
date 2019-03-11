@@ -246,6 +246,7 @@ bool inArray ( char *pName, const char **ppArray, int iSize )
 {
   if ( pName == NULL )
     return false;
+    
   for ( int t=0; t<iSize; t++ )  {
     if ( memcmp ( pName, ppArray[t], 4 ) == 0 )
       return true;
@@ -473,20 +474,20 @@ ParsedMetadata *Utils::parse_spherical_mpeg4 ( Mpeg4Container *pMPEG4, std::fstr
   return pMetadata;
 }
 
-void Utils::parse_mpeg4 ( std::string &strFileName )
+ParsedMetadata * Utils::parse_mpeg4 ( std::string &strFileName )
 {
   std::fstream file ( strFileName.c_str ( ), std::ios::in | std::ios::binary |  std::ios::ate );
   if ( ! file.is_open ( ) )  {
     std::cerr << "Error \"" << strFileName << "\" does not exist or do not have permission." << std::endl;
-    return;
+    return NULL;
   }
   Mpeg4Container *pMPEG4 = Mpeg4Container::load ( file );
   if ( ! pMPEG4 )  {
     std::cerr << "Error, file could not be opened." << std::endl;
-    return;
+    return NULL;
   }
   std::cout << "File loaded." << std::endl;
-  parse_spherical_mpeg4 ( pMPEG4, file );
+  return parse_spherical_mpeg4 ( pMPEG4, file );
 }
 
 void Utils::inject_mpeg4 ( std::string &strInFile, std::string &strOutFile, Metadata *pMetadata )
@@ -522,24 +523,24 @@ void Utils::inject_mpeg4 ( std::string &strInFile, std::string &strOutFile, Meta
   pMPEG4->save ( inFile, outFile, 0 );
 }
 
-void Utils::parse_metadata ( std::string &strFile )
+ParsedMetadata * Utils::parse_metadata ( std::string &strFile )
 {
   std::fstream inFile ( strFile.c_str ( ), std::ios::in | std::ios::binary | std::ios::ate );
   if ( ! inFile.is_open ( ) ) {
     std::cerr << "Error \"" << strFile << "\" does not exist or do not have permission." << std::endl;
-    return;
+    return NULL;
   }
   inFile.close ( );
   int iArraySize = sizeof ( MPEG_FILE_EXTENSIONS ) / sizeof ( MPEG_FILE_EXTENSIONS[1] );
   std::string strExt;
   std::string::size_type idx = strFile.rfind ( '.' );
   if ( idx != std::string::npos )
-    strExt = strFile.substr ( idx + 1 );
+      strExt = strFile.substr ( idx );
 
   std::cout << "Processing: " << strFile << std::endl;
   if ( ! inArray ( (char *)strExt.c_str ( ), MPEG_FILE_EXTENSIONS, iArraySize ) )  {
     std::cerr << "Unknown file type" << std::endl;
-    return;
+    return NULL;
   }
   return parse_mpeg4 ( strFile );
 }

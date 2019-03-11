@@ -22,8 +22,8 @@ typedef void (^LibrarianCompletion)(BOOL);
 - (void)fetchVideo:(PHAsset *)asset toURL:(NSURL *)url withCompletion:(LibrarianCompletion)completion;
 
 // HELPER
-+ (NSURL *)tempImageURL;
-+ (NSURL *)tempVideoURL;
++ (NSURL *)tempImageURLWithExtension:(NSString *)ext;
++ (NSURL *)tempVideoURLWithExtension:(NSString *)ext;
 
 @end
 
