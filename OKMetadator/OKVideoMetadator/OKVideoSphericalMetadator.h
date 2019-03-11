@@ -18,6 +18,14 @@ NS_ASSUME_NONNULL_BEGIN
 @interface OKVideoSphericalMetadator : OKVideoMetadator
 
 /*!
+ * @brief Setup value for StitchingSoftware key.
+ * Can be used for -make..  interface.
+ * Won't be used with custom injection.
+ * "OKMetadator" by default.
+ */
+@property(nonatomic, copy) NSString *stitchingSoftware;
+
+/*!
  * @brief Getter spherical meta params of video
  * @param url indicates NSURL of original video
  * @return set of params. NSDictionary

@@ -121,7 +121,7 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     
     updParams[Spherical] = @"true";
     updParams[Stitched] = @"true";
-    updParams[StitchingSoftware] = @"OKMetadator";
+    updParams[StitchingSoftware] = _stitchingSoftware ? _stitchingSoftware : @"OKMetadator";;
     updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);
@@ -144,7 +144,7 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     
     updParams[Spherical] = @"true";
     updParams[Stitched] = @"true";
-    updParams[StitchingSoftware] = @"OKMetadator";
+    updParams[StitchingSoftware] = _stitchingSoftware ? _stitchingSoftware : @"OKMetadator";
     updParams[ProjectionType] = equirectangular;
     updParams[StereoMode] = left_right;
     updParams[SourceCount] = @(2);
