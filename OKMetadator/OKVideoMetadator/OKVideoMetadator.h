@@ -16,7 +16,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OKVideoMetadator : NSObject
 
-@property(nonatomic, copy) OKSphereMetaInjectorCompletion completion;
+/*!
+ * @brief Callback queue. Main by default
+ */
+@property(nonatomic) dispatch_queue_t completionQueue;
 
 /*!
  * @abstract iTunes Metadata ????
@@ -101,18 +104,20 @@ NS_ASSUME_NONNULL_BEGIN
  * @param atUrl indicates NSURL of original video
  * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
  * @param toUrl indicates NSURL of desctination video
+ * @param completion indicates the compeltion block
  * @return result
  */
-- (BOOL)writeVideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl;
+- (BOOL)writeVideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief export video with appended metadata
  * @param asset indicates AVAsset of original video
  * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
  * @param toUrl indicates NSURL of desctination video
+ * @param completion indicates the compeltion block
  * @return result
  */
-- (BOOL)writeVideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl;
+- (BOOL)writeVideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion;
 
 @end
 

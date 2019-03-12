@@ -11,10 +11,23 @@
 #import <os/log.h>
 
 @interface OKVideoMetadator ()
+//@property(nonatomic, copy) OKSphereMetaInjectorCompletion completion;
 @property(nonatomic, strong) AVAssetExportSession *exportSession;
 @end
 
 @implementation OKVideoMetadator
+
+- (instancetype)init
+{
+    self = [super init];
+    
+    if (self)
+    {
+        _completionQueue = dispatch_get_main_queue();
+    }
+    
+    return self;
+}
 
 #pragma mark Metadata getters
 
@@ -82,14 +95,14 @@
     return @{};
 }
 
-- (BOOL)writeVideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl
+- (BOOL)writeVideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion
 {
     NSAssert(atUrl && toUrl, @"Unexpected NIL!");
     
-    return [self writeVideoAsset:[AVAsset assetWithURL:atUrl] withMetaParams:metaParams toURL:toUrl];
+    return [self writeVideoAsset:[AVAsset assetWithURL:atUrl] withMetaParams:metaParams toURL:toUrl completion:completion];
 }
 
-- (BOOL)writeVideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl
+- (BOOL)writeVideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion
 {
     NSAssert(asset && toUrl, @"Unexpected NIL!");
     
@@ -124,11 +137,18 @@
     {
         [_exportSession exportAsynchronouslyWithCompletionHandler:^
          {
-             if (blockSelf.completion)
+             if (completion)
              {
-                 blockSelf.completion(blockSelf.exportSession.status == AVAssetExportSessionStatusCompleted);
+                 dispatch_async(blockSelf.completionQueue, ^
+                 {
+                     completion(blockSelf.exportSession.status == AVAssetExportSessionStatusCompleted);
+                     [blockSelf setExportSession:nil];
+                 });
              }
-             [blockSelf setExportSession:nil];
+             else
+             {
+                 [blockSelf setExportSession:nil];
+             }
          }];
     }
     

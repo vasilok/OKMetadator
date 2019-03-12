@@ -20,7 +20,6 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  * @brief Setup value for StitchingSoftware key.
  * Can be used for -make..  interface.
- * Won't be used with custom injection.
  * "OKMetadator" by default.
  */
 @property(nonatomic, copy) NSString *stitchingSoftware;
@@ -37,12 +36,11 @@ NS_ASSUME_NONNULL_BEGIN
  * @abstract FABRICS METHODS FOR MAKING 360/180 VIDEO.
  */
 
-
 /*!
 * @brief export video with appended 360 spatial metadata
 * @param atUrl indicates NSURL of original video
 * @param toUrl indicates NSURL of desctination video
-* @param completion indicates success of operation. Calling in the Main queue.
+* @param completion indicates success of operation.
 */
 - (void)make360VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
@@ -50,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @brief export video with appended 180 spatial metadata
  * @param atUrl indicates NSURL of original video
  * @param toUrl indicates NSURL of desctination video
- * @param completion indicates success of operation. Calling in the Main queue.
+ * @param completion indicates success of operation.
  */
 - (void)make180VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
@@ -59,36 +57,20 @@ NS_ASSUME_NONNULL_BEGIN
  * @param atUrl indicates NSURL of original video
  * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
  * @param toUrl indicates NSURL of desctination video
+ * @param completion indicates success of operation.
  * @return result
  */
-- (BOOL)make360VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl;
-
-/*!
- * @brief export video with appended 360 spatial and metadata
- * @param asset indicates AVAsset of original video
- * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
- * @param toUrl indicates NSURL of desctination video
- * @return result
- */
-- (BOOL)make360VideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams writetoURL:(nonnull NSURL *)toUrl;
+- (BOOL)make360VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief export video with appended 180 spatial and metadata
  * @param atUrl indicates NSURL of original video
  * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
  * @param toUrl indicates NSURL of desctination video
+ * @param completion indicates success of operation.
  * @return result
  */
-- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl;
-
-/*!
- * @brief export video with appended 180 spatial and metadata
- * @param asset indicates AVAsset of original video
- * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
- * @param toUrl indicates NSURL of desctination video
- * @return result
- */
-- (BOOL)make180VideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams writetoURL:(nonnull NSURL *)toUrl;
+- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief Getting required pano metadata for 360 video with size.

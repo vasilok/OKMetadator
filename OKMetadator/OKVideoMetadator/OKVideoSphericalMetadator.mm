@@ -18,6 +18,11 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
 
 @implementation OKVideoSphericalMetadator
 
+- (NSString *)stitchingSoftware
+{
+    return _stitchingSoftware ? _stitchingSoftware : @"OKMetadator";
+}
+
 - (nonnull OKMetaParam *)metaParamsFromVideoAtURL:(nonnull NSURL *)url
 {
     OKMetaParam *param = [super metaParamsFromVideoAtURL:url];
@@ -46,21 +51,19 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
 {
     NSAssert(atUrl, @"Unexpected NIL!");
     
-    [self setCompletion:completion];
-    
     __typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
                    {
                        if ([atUrl.pathExtension isEqualToString:@"mp4"] ||
                            [atUrl.pathExtension isEqualToString:@"MP4"])
                        {
-                           [blockSelf processInject360:YES from:atUrl to:toUrl];
+                           [blockSelf processInject360:YES existMeta:nil at:atUrl to:toUrl completion:completion];
                        }
                        else
                        {
                            [blockSelf convertToMP4VideoAt:atUrl completion:^(NSURL *convertedURL)
                             {
-                                [blockSelf processInject360:YES from:convertedURL to:toUrl];
+                                [blockSelf processInject360:YES existMeta:nil at:convertedURL to:toUrl completion:completion];
                                 
                                 [[NSFileManager defaultManager] removeItemAtURL:convertedURL error:nil];
                             }];
@@ -72,8 +75,6 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
 {
     NSAssert(atUrl, @"Unexpected NIL!");
     
-    [self setCompletion:completion];
-    
     __typeof(self) blockSelf = self;
     
     dispatch_async(dispatch_get_global_queue(0, 0), ^
@@ -81,13 +82,13 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
                        if ([atUrl.pathExtension isEqualToString:@"mp4"] ||
                            [atUrl.pathExtension isEqualToString:@"MP4"])
                        {
-                           [blockSelf processInject360:NO from:atUrl to:toUrl];
+                           [blockSelf processInject360:NO existMeta:nil at:atUrl to:toUrl completion:completion];
                        }
                        else
                        {
                            [blockSelf convertToMP4VideoAt:atUrl completion:^(NSURL *convertedURL)
                             {
-                                [blockSelf processInject360:NO from:convertedURL to:toUrl];
+                                [blockSelf processInject360:NO existMeta:nil at:convertedURL to:toUrl completion:completion];
                                 
                                 [[NSFileManager defaultManager] removeItemAtURL:convertedURL error:nil];
                             }];
@@ -95,24 +96,18 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
                    });
 }
 
-- (BOOL)make360VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl
+- (BOOL)make360VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion
 {
-    return NO;
+    NSAssert(atUrl && toUrl, @"Unexpected NIL!");
+    
+    return [self processInject360:YES existMeta:metaParams at:atUrl to:toUrl completion:completion];
 }
 
-- (BOOL)make360VideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams writetoURL:(nonnull NSURL *)toUrl
+- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion
 {
-    return NO;
-}
-
-- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl
-{
-    return NO;
-}
-
-- (BOOL)make180VideoAsset:(nonnull AVAsset *)asset withMetaParams:(nullable OKMetaParam *)metaParams writetoURL:(nonnull NSURL *)toUrl
-{
-    return NO;
+    NSAssert(atUrl && toUrl, @"Unexpected NIL!");
+    
+    return [self processInject360:NO existMeta:metaParams at:atUrl to:toUrl completion:completion];
 }
 
 - (nonnull NSDictionary *)spatial360ParamsWithSize:(CGSize)size
@@ -121,7 +116,7 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     
     updParams[Spherical] = @"true";
     updParams[Stitched] = @"true";
-    updParams[StitchingSoftware] = _stitchingSoftware ? _stitchingSoftware : @"OKMetadator";;
+    updParams[StitchingSoftware] = _stitchingSoftware;
     updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);
@@ -144,7 +139,7 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     
     updParams[Spherical] = @"true";
     updParams[Stitched] = @"true";
-    updParams[StitchingSoftware] = _stitchingSoftware ? _stitchingSoftware : @"OKMetadator";
+    updParams[StitchingSoftware] = _stitchingSoftware;
     updParams[ProjectionType] = equirectangular;
     updParams[StereoMode] = left_right;
     updParams[SourceCount] = @(2);
@@ -198,21 +193,71 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     return [dict copy];
 }
 
-- (void)processInject360:(BOOL)is360 from:(NSURL *)fromURL to:(NSURL *)toURL
+- (BOOL)processInject360:(BOOL)is360 existMeta:(NSDictionary *)metaParams at:(NSURL *)atUrl to:(NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion
 {
-    AVAsset *asset = [AVAsset assetWithURL:fromURL];
+    NSDictionary *inputSpherical = metaParams[SphericalVideo];
+    
+    AVAsset *asset = [AVAsset assetWithURL:atUrl];
     CGSize size = [[[asset tracksWithMediaType:AVMediaTypeVideo] firstObject] naturalSize];
+    NSMutableDictionary *spherical = [(is360 ? [self spatial360ParamsWithSize:size] : [self spatial180ParamsWithSize:size]) mutableCopy];
+    [spherical setValuesForKeysWithDictionary:inputSpherical];
     
-    BOOL result = [self processInjectSpatialMeta:is360 ? [self spatial360ParamsWithSize:size] : [self spatial180ParamsWithSize:size]
-                                           atURL:fromURL
-                                           toURL:toURL];
+    NSMutableDictionary *other = [metaParams mutableCopy];
+    [other removeObjectForKey:SphericalVideo];
     
-    if (self.completion) {
-        dispatch_async(dispatch_get_main_queue(), ^
-                       {
-                           self.completion(result);
-                       });
+    __typeof(self) blockSelf = self;
+    if (other.allKeys.count > 0)
+    {
+        NSString *tempName = [NSString stringWithFormat:@"OKT%ld", (long)CFAbsoluteTimeGetCurrent()];
+        NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:atUrl.pathExtension]] filePathURL];
+        
+        if ([super writeVideoAtURL:atUrl withMetaParams:other toURL:tempURL completion:^(BOOL success)
+             {
+                 if (success)
+                 {
+                     dispatch_async(dispatch_get_global_queue(0, 0), ^
+                                    {
+                                        BOOL result = [blockSelf processInjectSpatialMeta:spherical atURL:atUrl toURL:toUrl];
+                                        if (completion)
+                                        {
+                                            dispatch_async(blockSelf.completionQueue, ^
+                                                           {
+                                                               completion(result);
+                                                           });
+                                        }
+                                    });
+                 }
+                 else if (completion)
+                 {
+                     dispatch_async(blockSelf.completionQueue, ^
+                                    {
+                                        completion(NO);
+                                    });
+                 }
+             }] == NO)
+        {
+            return NO;
+        }
+        
+        return YES;
     }
+    else
+    {
+        dispatch_async(dispatch_get_global_queue(0, 0), ^
+                       {
+                           BOOL result = [blockSelf processInjectSpatialMeta:spherical atURL:atUrl toURL:toUrl];
+                           if (completion)
+                           {
+                               dispatch_async(blockSelf.completionQueue, ^
+                                              {
+                                                  completion(result);
+                                              });
+                           }
+                       });
+        return YES;
+    }
+    
+    return NO;
 }
 
 - (BOOL)processInjectSpatialMeta:(NSDictionary *)metaParam atURL:(NSURL *)url toURL:(NSURL *)toURL
@@ -267,18 +312,17 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     NSString *tempName = [NSString stringWithFormat:@"OKT%ld", (long)CFAbsoluteTimeGetCurrent()];
     NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"mp4"]] filePathURL];
     
-    _converter = [OKVideoMetadator new];
-    [_converter setCompletion:^(BOOL success)
-     {
-         if (completion) {
-             dispatch_async(dispatch_get_main_queue(), ^
-                            {
-                                completion(success ? tempURL : nil);
-                            });
-         }
-     }];
-    
-    [_converter writeVideoAtURL:url withMetaParams:nil toURL:tempURL];
+    __typeof(self) blockSelf = self;
+    [super writeVideoAtURL:url withMetaParams:nil toURL:tempURL completion:^(BOOL success)
+    {
+        if (completion)
+        {
+            dispatch_async(blockSelf.completionQueue, ^
+                           {
+                               completion(success ? tempURL : nil);
+                           });
+        }
+    }];
 }
 
 @end
