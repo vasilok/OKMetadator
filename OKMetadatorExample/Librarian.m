@@ -198,7 +198,7 @@
 
 - (NSString *)workAlbumName
 {
-    return @"VSMetadator";
+    return @"OKMetadator";
 }
 
 @end
