@@ -33,7 +33,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @brief Remove GPano tags from metadata
  * @param url indicates original url of image file
  * @param outputURL indicates processed url of image file
- * @param completion indicates success of operation. Calling in the Main queue.
+ * @param completion indicates success of operation.
  */
 - (void)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion;
 

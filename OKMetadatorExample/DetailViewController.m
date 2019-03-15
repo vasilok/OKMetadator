@@ -155,6 +155,18 @@
             }];
         }
     }
+    else if (_videoMetadator) {
+        NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];
+        [_videoMetadator removeSphericalFromVideoAt:_URL outputURL:tempURL completion:^(BOOL success) {
+            if (success) {
+                [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
+                    if (success) {
+                        [[self navigationController] popViewControllerAnimated:YES];
+                    }
+                }];
+            }
+        }];
+    }
 }
 
 @end

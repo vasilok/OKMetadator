@@ -31,6 +31,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (nonnull NSDictionary *)sphericalMetaParamsVideoAtURL:(nonnull NSURL *)url;
 
+/*!
+ * @brief Remove spherical tags from metadata
+ * @param url indicates original url of video
+ * @param outputURL indicates processed url of video
+ * @param completion indicates success of operation.
+ */
+- (void)removeSphericalFromVideoAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @abstract FABRICS METHODS FOR MAKING 360/180 VIDEO.

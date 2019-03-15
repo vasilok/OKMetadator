@@ -47,6 +47,11 @@ typedef void (^OKVideoConverterCompletion)(NSURL *);
     return [self processExtractSpatialMetaAtURL:url];
 }
 
+- (void)removeSphericalFromVideoAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    [self writeVideoAtURL:url withMetaParams:nil toURL:outputURL completion:completion];
+}
+
 - (void)make360VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion
 {
     NSAssert(atUrl, @"Unexpected NIL!");
