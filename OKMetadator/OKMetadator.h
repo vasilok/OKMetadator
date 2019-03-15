@@ -43,6 +43,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define LastPhotoDate                @"LastPhotoDate"
 #define SourcePhotosCount            @"SourcePhotosCount"
 #define ExposureLockUsed             @"ExposureLockUsed"
+#define CaptureSoftware              @"CaptureSoftware"
 
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"

@@ -23,6 +23,11 @@
     return self;
 }
 
+- (NSString *)captureSoftware
+{
+    return _captureSoftware ? _captureSoftware : @"OKMetadator";
+}
+
 #pragma mark 360/180 Fabrics
 
 - (void)make360ImageAtURL:(nonnull NSURL *)url
@@ -145,6 +150,7 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
+    updParams[CaptureSoftware] = [self captureSoftware];
     updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);
@@ -165,6 +171,7 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
+    updParams[CaptureSoftware] = [self captureSoftware];
     updParams[ProjectionType] = equirectangular;
     updParams[InitialViewHeadingDegrees] = @(0);
     updParams[InitialViewPitchDegrees] = @(0);

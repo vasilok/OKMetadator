@@ -22,7 +22,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property(nonatomic) dispatch_queue_t completionQueue;
 
-
+/*!
+ * @brief Setup value for CaptureSoftware key.
+ * Can be used for -make..  interface.
+ * "OKMetadator" by default.
+ */
+@property(nonatomic, copy) NSString *captureSoftware;
 
 /*!
  * @abstract FABRICS METHODS FOR MAKING 360/180 SPHERE IMAGES.

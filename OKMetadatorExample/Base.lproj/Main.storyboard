@@ -26,7 +26,7 @@
             </objects>
             <point key="canvasLocation" x="-1454" y="-45"/>
         </scene>
-        <!--VSMetadator-->
+        <!--OKMetadator-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
@@ -58,7 +58,7 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
-                    <navigationItem key="navigationItem" title="VSMetadator" id="ahs-ql-usD"/>
+                    <navigationItem key="navigationItem" title="OKMetadator" id="ahs-ql-usD"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

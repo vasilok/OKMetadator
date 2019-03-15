@@ -40,6 +40,7 @@
 - (void)setupWithImageURL:(NSURL * _Nonnull)imageURL
 {
     _URL = imageURL;
+    
     NSData *imageData = [NSData dataWithContentsOfURL:_URL options:0 error:NULL];
     _image = [UIImage imageWithData:imageData];
     
@@ -48,6 +49,8 @@
     
     _meta = [_imageMetadator metaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
+    
+    self.title = [_URL lastPathComponent];
     
     [self setup];
 }
@@ -69,6 +72,8 @@
     
     _meta = [_videoMetadator metaParamsFromVideoAtURL:_URL];
     _params = [_videoMetadator videoPropertiesFromVideoAtURL:_URL];
+    
+    self.title = [_URL lastPathComponent];
     
     [self setup];
 }
