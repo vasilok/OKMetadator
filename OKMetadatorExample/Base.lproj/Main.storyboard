@@ -121,14 +121,27 @@
                                     <action selector="make180:" destination="4j4-EO-8oE" eventType="touchDown" id="6ie-Bm-bb8"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="HoK-pZ-75a">
+                                <rect key="frame" x="150" y="40" width="75" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="75" id="8VB-KO-N9r"/>
+                                    <constraint firstAttribute="height" constant="30" id="YYm-as-XWN"/>
+                                </constraints>
+                                <state key="normal" title="Clear Pano"/>
+                                <connections>
+                                    <action selector="clearPano:" destination="4j4-EO-8oE" eventType="touchDown" id="zQM-J4-dNg"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="HoK-pZ-75a" firstAttribute="top" secondItem="fcd-79-WRY" secondAttribute="top" constant="20" id="5E5-qx-r1e"/>
                             <constraint firstItem="C6j-Os-iwx" firstAttribute="top" secondItem="fcd-79-WRY" secondAttribute="top" constant="20" id="CXN-VE-DOr"/>
                             <constraint firstItem="fcd-79-WRY" firstAttribute="trailing" secondItem="6ry-iz-PC6" secondAttribute="trailing" constant="20" id="Ild-q9-Gan"/>
                             <constraint firstItem="6ry-iz-PC6" firstAttribute="leading" secondItem="fcd-79-WRY" secondAttribute="leading" constant="20" id="S8b-Oe-A4H"/>
                             <constraint firstItem="6ry-iz-PC6" firstAttribute="top" secondItem="fcd-79-WRY" secondAttribute="top" constant="60" id="U0o-Km-etv"/>
                             <constraint firstItem="fcd-79-WRY" firstAttribute="trailing" secondItem="C6j-Os-iwx" secondAttribute="trailing" constant="20" id="WdI-xF-ufZ"/>
+                            <constraint firstItem="HoK-pZ-75a" firstAttribute="centerX" secondItem="XNZ-cN-vJG" secondAttribute="centerX" id="b8g-qW-jgv"/>
                             <constraint firstItem="tyi-G8-azS" firstAttribute="top" secondItem="fcd-79-WRY" secondAttribute="top" constant="20" id="ia7-eL-BJQ"/>
                             <constraint firstItem="fcd-79-WRY" firstAttribute="bottom" secondItem="6ry-iz-PC6" secondAttribute="bottom" constant="20" id="sYu-oU-u4A"/>
                             <constraint firstItem="tyi-G8-azS" firstAttribute="leading" secondItem="fcd-79-WRY" secondAttribute="leading" constant="20" id="yoo-8E-eTs"/>

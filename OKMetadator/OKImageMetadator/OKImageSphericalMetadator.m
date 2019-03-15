@@ -28,6 +28,32 @@
     return _captureSoftware ? _captureSoftware : @"OKMetadator";
 }
 
+- (void)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [self removePanoFromImageAt:url outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (BOOL)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL
+{
+    NSMutableDictionary *params = [[self metaParamsFromImageAtURL:url] mutableCopy];
+    [params removeObjectForKey:PanoNamespace];
+    
+    return [self processInjectionForImageURL:url output:outputURL withMetaParam:params copyOld:NO];
+}
+
 #pragma mark 360/180 Fabrics
 
 - (void)make360ImageAtURL:(nonnull NSURL *)url
@@ -177,7 +203,7 @@
     updParams[InitialViewPitchDegrees] = @(0);
     updParams[InitialViewRollDegrees] = @(0);
     updParams[InitialHorizontalFOVDegrees] = @(75.0);
-    updParams[PoseHeadingDegrees] = @(360);
+    updParams[PoseHeadingDegrees] = @(180);
     updParams[FullPanoWidthPixels] = @(size.width * 2);
     updParams[FullPanoHeightPixels] = @(size.height);
     updParams[CroppedAreaImageWidthPixels] = @(size.width);
@@ -196,6 +222,96 @@
 - (CGFloat)pano180Aspect
 {
     return 1;
+}
+
+- (BOOL)verifyParam:(id)param forKey:(NSString *)key
+{
+    if ([key isEqualToString:CaptureSoftware]) {
+        return [param isKindOfClass:[NSString class]];
+    }
+    else if ([key isEqualToString:ProjectionType]) {
+        NSString *value = (NSString *)param;
+        return [value isKindOfClass:[NSString class]] && [value isEqualToString:equirectangular];
+    }
+    else if ([key isEqualToString:UsePanoramaViewer]) {
+        if ([param isKindOfClass:[NSNumber class]]) {
+            return YES;
+        }
+        else if ([param isKindOfClass:[NSString class]]) {
+            NSString *value = (NSString *)param;
+            return [value isEqualToString:@"true"] || [value isEqualToString:@"false"];
+        }
+    }
+    else if ([key isEqualToString:FullPanoWidthPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:FullPanoHeightPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialViewHeadingDegrees]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialViewPitchDegrees]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialViewRollDegrees]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialHorizontalFOVDegrees]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialVerticalFOVDegrees]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:PoseHeadingDegrees]) {
+        NSNumber *value = (NSNumber *)param;
+        return [value isKindOfClass:[NSNumber class]] && (value.floatValue >= 0.) && (value.floatValue <= 360.);
+    }
+    else if ([key isEqualToString:PosePitchDegrees]) {
+        NSNumber *value = (NSNumber *)param;
+        return [value isKindOfClass:[NSNumber class]] && (value.floatValue >= -90.) && (value.floatValue <= 90.);
+    }
+    else if ([key isEqualToString:PoseRollDegrees]) {
+        NSNumber *value = (NSNumber *)param;
+        return [value isKindOfClass:[NSNumber class]] && (value.floatValue >= -180.) && (value.floatValue <= 180.);
+    }
+    else if ([key isEqualToString:CroppedAreaLeftPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:CroppedAreaImageHeightPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:CroppedAreaTopPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:CroppedAreaImageWidthPixels]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:InitialCameraDolly]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    
+    else if ([key isEqualToString:InitialCameraDolly]) {
+        if ([param isKindOfClass:[NSNumber class]]) {
+            return YES;
+        }
+        else if ([param isKindOfClass:[NSString class]]) {
+            NSString *value = (NSString *)param;
+            return [value isEqualToString:@"true"] || [value isEqualToString:@"false"];
+        }
+    }
+    else if ([key isEqualToString:SourcePhotosCount]) {
+        return [param isKindOfClass:[NSNumber class]];
+    }
+    else if ([key isEqualToString:FirstPhotoDate]) {
+        return [param isKindOfClass:[NSString class]];
+    }
+    else if ([key isEqualToString:LastPhotoDate]) {
+        return [param isKindOfClass:[NSString class]];
+    }
+    
+    os_log_error(OS_LOG_DEFAULT, "Unknown Pano key: %@", key);
+    return NO;
 }
 
 #pragma mark Make Private
@@ -224,14 +340,14 @@
     {
         if ([self resizeAspect:aspect imageAtURL:url andWriteURL:tempURL])
         {
-            result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams];
+            result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
             
             [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
         }
     }
     else
     {
-        result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams];
+        result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams copyOld:YES];
     }
     
     return result;
@@ -258,7 +374,7 @@
     BOOL result = NO;
     if ([self resizeAspect:aspect image:image withProperties:nil andWriteURL:tempURL])
     {
-        result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams];
+        result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
         
         [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
     }
@@ -278,7 +394,7 @@
     __weak typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
                    {
-                       BOOL result = [blockSelf processInjectionForImageURL:url output:outputURL withMetaParam:meta];
+                       BOOL result = [blockSelf processInjectionForImageURL:url output:outputURL withMetaParam:meta copyOld:YES];
                        
                        if (completion)
                        {
@@ -295,7 +411,7 @@
 {
     NSAssert(url && outputURL, @"Unexpected NIL!");
     
-    return [self processInjectionForImageURL:url output:outputURL withMetaParam:meta];
+    return [self processInjectionForImageURL:url output:outputURL withMetaParam:meta copyOld:YES];
 }
 
 - (void)injectPanoToImage:(nonnull UIImage *)image
@@ -308,7 +424,7 @@
     __weak typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
                    {
-                       BOOL result = [blockSelf processInjectionForImage:image output:outputURL withMetaParam:meta];
+                       BOOL result = [blockSelf processInjectionForImage:image output:outputURL withMetaParam:meta copyOld:YES];
                        
                        if (completion)
                        {
@@ -325,7 +441,7 @@
 {
     NSAssert(image && outputURL, @"Unexpected NIL!");
     
-    return [self processInjectionForImage:image output:outputURL withMetaParam:meta];
+    return [self processInjectionForImage:image output:outputURL withMetaParam:meta copyOld:YES];
 }
 
 - (nullable NSDictionary *)extractPanoFromImageAtURL:(nonnull NSURL *)url
@@ -374,6 +490,7 @@
 - (BOOL)processInjectionForImage:(UIImage *)image
                           output:(NSURL *)outputURL
                    withMetaParam:(OKMetaParam *)param
+                         copyOld:(BOOL)copyOld
 {
     CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
     if (source == NULL)
@@ -382,7 +499,7 @@
         return NO;
     }
     
-    BOOL result = [self processInjectionForImage:image.CGImage source:source output:outputURL withMetaParam:param];
+    BOOL result = [self processInjectionForImage:image.CGImage source:source output:outputURL withMetaParam:param copyOld:copyOld];
     
     CFRelease(source);
     
@@ -391,7 +508,8 @@
 
 - (BOOL)processInjectionForImageURL:(NSURL *)url
                              output:(NSURL *)outputURL
-                      withMetaParam:(nullable NSDictionary *)param
+                      withMetaParam:(OKMetaParam *)param
+                            copyOld:(BOOL)copyOld
 {
     CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
     if (source == NULL)
@@ -409,7 +527,7 @@
         return NO;
     }
     
-    BOOL result = [self processInjectionForImage:image source:source output:outputURL withMetaParam:param];
+    BOOL result = [self processInjectionForImage:image source:source output:outputURL withMetaParam:param copyOld:copyOld];
     
     CGImageRelease(image);
     CFRelease(source);
@@ -421,6 +539,7 @@
                           source:(CGImageSourceRef)source
                           output:(NSURL *)outputURL
                    withMetaParam:(nullable OKMetaParam *)param
+                         copyOld:(BOOL)copyOld
 {
     CGFloat width = CGImageGetWidth(image);
     CGFloat height = CGImageGetHeight(image);
@@ -434,24 +553,33 @@
     }
     os_log_info(OS_LOG_DEFAULT, "Input meta:\n%@", metadata);
     
-    CGMutableImageMetadataRef destMetadata = CGImageMetadataCreateMutableCopy(metadata);
+    CGMutableImageMetadataRef destMetadata = copyOld ? CGImageMetadataCreateMutableCopy(metadata) : CGImageMetadataCreateMutable();
     
     NSDictionary *panoParam = param[(NSString *)PanoNamespace];
-    if ([self setPanoParams:panoParam imageSize:CGSizeMake(width, height) toMeta:destMetadata] == NO)
+    if (panoParam != nil && copyOld)
     {
-        os_log_error(OS_LOG_DEFAULT, "Setting Pano params fails");
+        if ([self setPanoParams:panoParam imageSize:CGSizeMake(width, height) toMeta:destMetadata] == NO)
+        {
+            os_log_error(OS_LOG_DEFAULT, "Setting Pano params fails");
+        }
     }
     
     NSDictionary *googleParam = param[(NSString *)GoogleNamespace];
-    if ([self setGoogleParams:googleParam toMeta:destMetadata] == NO)
+    if (googleParam != nil && copyOld)
     {
-        os_log_error(OS_LOG_DEFAULT, "Setting Google params fails");
+        if ([self setGoogleParams:googleParam toMeta:destMetadata] == NO)
+        {
+            os_log_error(OS_LOG_DEFAULT, "Setting Google params fails");
+        }
     }
     
     NSDictionary *appleParam = param[(NSString *)AppleNamespace];
-    if ([self setAppleParams:appleParam toMeta:destMetadata] == NO)
+    if (appleParam != nil && copyOld)
     {
-        os_log_error(OS_LOG_DEFAULT, "Setting Apple params fails");
+        if ([self setAppleParams:appleParam toMeta:destMetadata] == NO)
+        {
+            os_log_error(OS_LOG_DEFAULT, "Setting Apple params fails");
+        }
     }
     
     NSMutableDictionary *other = [param mutableCopy];
@@ -530,20 +658,20 @@
     [self setTagForPanoKey:UsePanoramaViewer value:@"True" toMeta:meta];
     
     NSNumber *heading = params[PoseHeadingDegrees];
-    if (heading != nil) {
+    if ((heading != nil) && [self verifyParam:heading forKey:PoseHeadingDegrees]) {
         [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)(heading) toMeta:meta];
     }
-    else {
+    else { // for Google maps!
         [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)@"360" toMeta:meta];
     }
     
     NSNumber *pitch = params[PosePitchDegrees];
-    if (pitch != nil) {
+    if ((pitch != nil) && [self verifyParam:heading forKey:PosePitchDegrees]) {
         [self setTagForPanoKey:PosePitchDegrees value:(__bridge CFTypeRef)(pitch) toMeta:meta];
     }
     
     NSNumber *roll = params[PoseRollDegrees];
-    if (roll != nil) {
+    if ((roll != nil) && [self verifyParam:heading forKey:PoseRollDegrees]){
         [self setTagForPanoKey:PoseRollDegrees value:(__bridge CFTypeRef)(roll) toMeta:meta];
     }
     

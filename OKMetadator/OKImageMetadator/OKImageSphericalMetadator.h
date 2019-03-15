@@ -30,6 +30,22 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy) NSString *captureSoftware;
 
 /*!
+ * @brief Remove GPano tags from metadata
+ * @param url indicates original url of image file
+ * @param outputURL indicates processed url of image file
+ * @param completion indicates success of operation. Calling in the Main queue.
+ */
+- (void)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion;
+
+/*!
+ * @brief Remove GPano tags from metadata
+ * @param url indicates original url of image file
+ * @param outputURL indicates processed url of image file
+ * @return result.
+ */
+- (BOOL)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL;
+
+/*!
  * @abstract FABRICS METHODS FOR MAKING 360/180 SPHERE IMAGES.
  */
 

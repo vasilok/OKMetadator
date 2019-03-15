@@ -142,4 +142,19 @@
     }
 }
 
+- (IBAction)clearPano:(id)sender
+{
+    if (_imageMetadator) {
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
+        
+        if ([_imageMetadator removePanoFromImageAt:_URL outputURL:tempURL]) {
+            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+                if (success) {
+                    [[self navigationController] popViewControllerAnimated:YES];
+                }
+            }];
+        }
+    }
+}
+
 @end

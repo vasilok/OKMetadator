@@ -38,15 +38,16 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define GImage  @"GImage"
 #define ImageIO @"iio"
 
+#define Mime   @"Mime"
+#define hasXMP @"hasXMP"
+
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"
 #define LastPhotoDate                @"LastPhotoDate"
 #define SourcePhotosCount            @"SourcePhotosCount"
 #define ExposureLockUsed             @"ExposureLockUsed"
 #define CaptureSoftware              @"CaptureSoftware"
-
-#define Mime   @"Mime"
-#define hasXMP @"hasXMP"
+#define InitialCameraDolly           @"InitialCameraDolly"
 
 // Common Spherical Keys
 #define FullPanoWidthPixels          @"FullPanoWidthPixels"
