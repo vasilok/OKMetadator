@@ -96,6 +96,51 @@
                    });
 }
 
+- (void)makePanoWithHorizontalFOV:(CGFloat)horizntalFOV
+                      verticalFOV:(CGFloat)verticalFOV
+                            atURL:(nonnull NSURL *)url
+                        outputURL:(nonnull NSURL *)outputURL
+                       completion:(nullable OKSphereMetaInjectorCompletion)completion;
+{
+    NSAssert(url && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [self processMake:horizntalFOV verticalFOV:verticalFOV imageAtURL:url outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
+- (void)makePanoImage:(nonnull UIImage *)image
+    withHorizontalFOV:(CGFloat)horizntalFOV
+          verticalFOV:(CGFloat)verticalFOV
+                 meta:(nullable OKMetaParam *)meta
+            outputURL:(nonnull NSURL *)outputURL
+           completion:(nullable OKSphereMetaInjectorCompletion)completion
+{
+    NSAssert(image && outputURL, @"Unexpected NIL!");
+    
+    __weak typeof(self) blockSelf = self;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^
+                   {
+                       BOOL result = [self processMake:horizntalFOV verticalFOV:verticalFOV meta:meta image:image outputURL:outputURL];
+                       
+                       if (completion)
+                       {
+                           dispatch_async(blockSelf.completionQueue, ^{
+                               completion(result);
+                           });
+                       }
+                   });
+}
+
 - (void)make360Image:(nonnull UIImage *)image
             withMeta:(nullable OKMetaParam *)meta
            outputURL:(nonnull NSURL *)outputURL
@@ -210,6 +255,29 @@
     updParams[CroppedAreaImageHeightPixels] = @(size.height);
     updParams[CroppedAreaLeftPixels] = @(size.width/2);
     updParams[CroppedAreaTopPixels] = @(0);
+    
+    return [updParams copy];
+}
+
+- (nonnull NSDictionary *)panoParams:(CGFloat)hFov vFov:(CGFloat)vFov withSize:(CGSize)size
+{
+    NSMutableDictionary *updParams = [NSMutableDictionary new];
+    
+    CGFloat fullWidth = size.width * 360.0/hFov;
+    CGFloat fullHeight = size.height * 180.0/vFov;
+    updParams[CaptureSoftware] = [self captureSoftware];
+    updParams[ProjectionType] = equirectangular;
+    updParams[InitialViewHeadingDegrees] = @(0);
+    updParams[InitialViewPitchDegrees] = @(0);
+    updParams[InitialViewRollDegrees] = @(0);
+    updParams[InitialHorizontalFOVDegrees] = @(75.0);
+    updParams[PoseHeadingDegrees] = @(hFov);
+    updParams[FullPanoWidthPixels] = @(fullWidth);
+    updParams[FullPanoHeightPixels] = @(fullHeight);
+    updParams[CroppedAreaImageWidthPixels] = @(size.width);
+    updParams[CroppedAreaImageHeightPixels] = @(size.height);
+    updParams[CroppedAreaLeftPixels] = @(fullWidth/2 - size.width/2);
+    updParams[CroppedAreaTopPixels] = @(fullHeight/2 - size.height/2);
     
     return [updParams copy];
 }
@@ -381,6 +449,68 @@
     
     return result;
 }
+
+- (BOOL)processMake:(CGFloat)horizntalFOV verticalFOV:(CGFloat)verticalFOV meta:(OKMetaParam *)meta image:(UIImage *)image outputURL:(NSURL *)outputURL
+{
+    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
+    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
+    
+    CGSize size = CGSizeMake(image.size.width, image.size.height);
+    
+    CGFloat aspect = horizntalFOV / verticalFOV;
+    CGFloat delta = aspect/(size.width/size.height);
+    CGSize renderSize = CGSizeMake(roundf((size.width * delta)), roundf(size.height));
+    
+    NSDictionary *panoParams = [self panoParams:horizntalFOV vFov:verticalFOV withSize:renderSize];
+    NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];;
+    [allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
+    
+    BOOL result = NO;
+    if ([self resizeAspect:aspect image:image withProperties:nil andWriteURL:tempURL])
+    {
+        result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
+        
+        [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
+    }
+    
+    return result;
+}
+
+- (BOOL)processMake:(CGFloat)horizntalFOV verticalFOV:(CGFloat)verticalFOV imageAtURL:(NSURL *)url outputURL:(NSURL *)outputURL
+{
+    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
+    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
+    
+    NSDictionary *props = [self propertiesFromImageAtURL:url];
+    
+    CGSize size = CGSizeMake([props[(NSString *)kCGImagePropertyPixelWidth] intValue], [props[(NSString *)kCGImagePropertyPixelHeight] intValue]);
+    
+    CGFloat aspect = horizntalFOV / verticalFOV;
+    CGFloat delta = aspect/(size.width/size.height);
+    CGSize renderSize = CGSizeMake(size.width * delta, size.height);
+    
+    NSDictionary *panoParams = [self panoParams:horizntalFOV vFov:verticalFOV withSize:renderSize];
+    NSDictionary *allParams = [props mutableCopy];
+    [allParams setValuesForKeysWithDictionary:panoParams];
+    
+    BOOL result = NO;
+    if (size.width / size.height != aspect)
+    {
+        if ([self resizeAspect:aspect imageAtURL:url andWriteURL:tempURL])
+        {
+            result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
+            
+            [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
+        }
+    }
+    else
+    {
+        result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams copyOld:YES];
+    }
+    
+    return result;
+}
+
 
 #pragma mark Custom Injection
 

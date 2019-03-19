@@ -118,14 +118,23 @@
 {
     if (_imageMetadator) {
         NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
-        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
-        {
-            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
-            }];
-        }
+//        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
+//        {
+//            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+//                if (success) {
+//                    [[self navigationController] popViewControllerAnimated:YES];
+//                }
+//            }];
+//        }
+        [_imageMetadator makePanoImage:_image withHorizontalFOV:180 verticalFOV:90 meta:_meta outputURL:tempURL completion:^(BOOL success) {
+            if (success) {
+                [self.librarian saveImageToLibrary:tempURL withCompletion:^(BOOL libSuccess) {
+                    if (libSuccess) {
+                        [[self navigationController] popViewControllerAnimated:YES];
+                    }
+                }];
+            }
+        }];
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];

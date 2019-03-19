@@ -70,6 +70,36 @@ NS_ASSUME_NONNULL_BEGIN
                completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
+ * @brief Make panorama image with image at URL. Async
+ * @param horizntalFOV indicates horizontal field of view, in grad
+ * @param verticalFOV indicates vertical field of view, in grad
+ * @param url indicates original url of image file
+ * @param outputURL indicates processed url of image file
+ * @param completion indicates success of operation. Calling in the Main queue.
+ */
+- (void)makePanoWithHorizontalFOV:(CGFloat)horizntalFOV
+                      verticalFOV:(CGFloat)verticalFOV
+                            atURL:(nonnull NSURL *)url
+                        outputURL:(nonnull NSURL *)outputURL
+                       completion:(nullable OKSphereMetaInjectorCompletion)completion;
+
+/*!
+ * @brief Make panorama image with image at URL. Async
+ * @param image indicates original image
+ * @param horizntalFOV indicates horizontal field of view, in grad
+ * @param verticalFOV indicates vertical field of view, in grad
+ * @param meta indicates other metadata of image
+ * @param outputURL indicates processed url of image file
+ * @param completion indicates success of operation. Calling in the Main queue.
+ */
+- (void)makePanoImage:(nonnull UIImage *)image
+    withHorizontalFOV:(CGFloat)horizntalFOV
+          verticalFOV:(CGFloat)verticalFOV
+                 meta:(nullable OKMetaParam *)meta
+            outputURL:(nonnull NSURL *)outputURL
+           completion:(nullable OKSphereMetaInjectorCompletion)completion;
+
+/*!
  * @brief Make 360 image with UIImage. Async
  * @param meta indicates the set of image meta params with @MetaFormat
  * @param image indicates original url of image file
@@ -146,6 +176,15 @@ NS_ASSUME_NONNULL_BEGIN
  * @return NSDictionary with obvious format
  */
 - (nonnull NSDictionary *)pano180ParamsWithSize:(CGSize)size;
+
+/*!
+ * @brief Getting required pano metadata for image with specific FOV and size.
+ * @param hFov indicates horizontal field of view image
+ * @param vFov indicates vertical field of view image
+ * @param size indicates image size
+ * @return NSDictionary with obvious format
+ */
+- (nonnull NSDictionary *)panoParams:(CGFloat)hFov vFov:(CGFloat)vFov withSize:(CGSize)size;
 
 /*!
  * @brief Getting required aspect for 360 image.
