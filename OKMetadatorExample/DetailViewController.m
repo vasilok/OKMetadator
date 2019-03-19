@@ -15,6 +15,9 @@
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak, nonatomic) IBOutlet UITextView *metaView;
 @property (weak, nonatomic) IBOutlet UITextView *propView;
+@property (weak, nonatomic) IBOutlet UITextField *hFOVField;
+@property (weak, nonatomic) IBOutlet UITextField *vFOVField;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 @property(nonatomic) OKMetaParam *meta;
@@ -22,6 +25,9 @@
 @property(nonatomic) OKImageSphericalMetadator *imageMetadator;
 @property(nonatomic) OKVideoSphericalMetadator *videoMetadator;
 @end
+
+#define CLOSED 60
+#define OPEN 100
 
 @implementation DetailViewController
 
@@ -84,6 +90,8 @@
     
     [_metaView setText:[_meta description]];
     [_propView setText:[_params description]];
+    
+    _topMetasConstraint.constant = CLOSED;
 }
 
 - (IBAction)make180:(id)sender
@@ -118,23 +126,14 @@
 {
     if (_imageMetadator) {
         NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
-//        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
-//        {
-//            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-//                if (success) {
-//                    [[self navigationController] popViewControllerAnimated:YES];
-//                }
-//            }];
-//        }
-        [_imageMetadator makePanoImage:_image withHorizontalFOV:180 verticalFOV:90 meta:_meta outputURL:tempURL completion:^(BOOL success) {
-            if (success) {
-                [self.librarian saveImageToLibrary:tempURL withCompletion:^(BOOL libSuccess) {
-                    if (libSuccess) {
-                        [[self navigationController] popViewControllerAnimated:YES];
-                    }
-                }];
-            }
-        }];
+        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
+        {
+            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+                if (success) {
+                    [[self navigationController] popViewControllerAnimated:YES];
+                }
+            }];
+        }
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];
@@ -148,6 +147,46 @@
                 }];
             }
          }];
+    }
+}
+
+- (IBAction)FOV:(id)sender
+{
+    if (_topMetasConstraint.constant == OPEN)
+    {
+        _topMetasConstraint.constant = CLOSED;
+    }
+    else
+    {
+        _topMetasConstraint.constant = OPEN;
+    }
+    
+    [UIView animateWithDuration:.5 animations:^{
+        [self.view layoutIfNeeded];
+    }];
+}
+
+- (IBAction)makeFOV:(id)sender
+{
+    _topMetasConstraint.constant = CLOSED;
+    [UIView animateWithDuration:.5 animations:^{
+        [self.view layoutIfNeeded];
+    }];
+    
+    CGFloat hFov = [_hFOVField.text integerValue];
+    CGFloat vFov = [_vFOVField.text integerValue];
+    
+    if (_imageMetadator) {
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
+        [_imageMetadator makePanoImage:_image withHorizontalFOV:hFov verticalFOV:vFov meta:_meta outputURL:tempURL completion:^(BOOL success) {
+            if (success) {
+                [self.librarian saveImageToLibrary:tempURL withCompletion:^(BOOL libSuccess) {
+                    if (libSuccess) {
+                        [[self navigationController] popViewControllerAnimated:YES];
+                    }
+                }];
+            }
+        }];
     }
 }
 
