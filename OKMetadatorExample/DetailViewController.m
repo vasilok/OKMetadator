@@ -97,8 +97,8 @@
 - (IBAction)make180:(id)sender
 {
     if (_imageMetadator) {
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
-        if ([_imageMetadator make180VRLeftImage:_image rightImage:_image withMeta:_meta outputURL:tempURL] )
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:/*[_URL pathExtension]*/@"vr.jpg"];
+        if ([_imageMetadator make180VRWithSBSImage:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 if (success) {

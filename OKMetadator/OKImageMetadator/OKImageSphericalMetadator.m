@@ -227,6 +227,33 @@
     return [self processMake180VRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
 }
 
+- (BOOL)make180VRWithSBSImage:(nonnull UIImage *)sbsImage
+                     withMeta:(nullable OKMetaParam *)meta
+                    outputURL:(nonnull NSURL *)outputURL
+{
+    NSAssert(sbsImage && outputURL, @"Unexpected NIL!");
+    
+    UIImage *leftImage = [self extractLeft:YES fromImage:sbsImage];
+    UIImage *rightImage = [self extractLeft:NO fromImage:sbsImage];
+    
+    return [self processMake180VRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
+}
+
+- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage
+{
+    CIImage *ciimage = [CIImage imageWithCGImage:sbsImage.CGImage];
+    CGRect rect;
+    if (left) {
+        rect = CGRectMake(0, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
+    }
+    else {
+        rect = CGRectMake(ciimage.extent.size.width/2, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
+    }
+    
+    CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:rect];
+    return [UIImage imageWithCGImage:cgImage];
+}
+
 - (nonnull NSDictionary *)pano360ParamsWithSize:(CGSize)size
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
@@ -300,6 +327,11 @@
 - (CGFloat)pano180Aspect
 {
     return 1;
+}
+
+- (NSString *)vrExtension
+{
+    return @"vr.jpg";
 }
 
 - (BOOL)verifyParam:(id)param forKey:(NSString *)key
