@@ -98,7 +98,7 @@
 {
     if (_imageMetadator) {
         NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
-        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
+        if ([_imageMetadator make180VRLeftImage:_image rightImage:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 if (success) {
@@ -106,6 +106,14 @@
                 }
             }];
         }
+//        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
+//        {
+//            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+//                if (success) {
+//                    [[self navigationController] popViewControllerAnimated:YES];
+//                }
+//            }];
+//        }
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];

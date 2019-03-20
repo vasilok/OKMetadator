@@ -37,6 +37,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define GPano   @"GPano"
 #define GImage  @"GImage"
 #define ImageIO @"iio"
+#define Data    @"Data"
 
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"

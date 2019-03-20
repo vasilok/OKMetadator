@@ -164,6 +164,20 @@ NS_ASSUME_NONNULL_BEGIN
            outputURL:(nonnull NSURL *)outputURL;
 
 /*!
+ * @brief Make VR 180 image with side by side layout. Sync
+ https://developers.google.com/vr/reference/cardboard-camera-vr-photo-format
+ * @param leftImage indicates the left eye image
+ * @param rightImage indicates the right eye image
+ * @param meta indicates the set of image meta params with @MetaFormat
+ * @param outputURL indicates processed url of image file
+ * @return result.
+ */
+- (BOOL)make180VRLeftImage:(nonnull UIImage *)leftImage
+                rightImage:(nonnull UIImage *)rightImage
+                  withMeta:(nullable OKMetaParam *)meta
+                 outputURL:(nonnull NSURL *)outputURL;
+
+/*!
  * @brief Getting required pano metadata for 360 image with size.
  * @param size indicates image size
  * @return NSDictionary with obvious format
