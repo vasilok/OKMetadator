@@ -18,6 +18,7 @@
 @property (weak, nonatomic) IBOutlet UITextField *hFOVField;
 @property (weak, nonatomic) IBOutlet UITextField *vFOVField;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
+@property (weak, nonatomic) IBOutlet UIButton *vrBtn;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 @property(nonatomic) OKMetaParam *meta;
@@ -92,13 +93,15 @@
     [_propView setText:[_params description]];
     
     _topMetasConstraint.constant = CLOSED;
+    
+    _vrBtn.hidden = _videoMetadator != nil;
 }
 
 - (IBAction)make180:(id)sender
 {
     if (_imageMetadator) {
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:/*[_URL pathExtension]*/@"vr.jpg"];
-        if ([_imageMetadator make180VRWithSBSImage:_image withMeta:_meta outputURL:tempURL] )
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
+        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 if (success) {
@@ -106,14 +109,6 @@
                 }
             }];
         }
-//        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
-//        {
-//            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-//                if (success) {
-//                    [[self navigationController] popViewControllerAnimated:YES];
-//                }
-//            }];
-//        }
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];
@@ -127,6 +122,21 @@
                  }];
              }
          }];
+    }
+}
+
+- (IBAction)make180VRPhoto:(id)sender
+{
+    if (_imageMetadator) {
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_imageMetadator vrExtension]];
+        if ([_imageMetadator make180VRWithSBSImage:_image withMeta:_meta outputURL:tempURL] )
+        {
+            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+                if (success) {
+                    [[self navigationController] popViewControllerAnimated:YES];
+                }
+            }];
+        }
     }
 }
 
