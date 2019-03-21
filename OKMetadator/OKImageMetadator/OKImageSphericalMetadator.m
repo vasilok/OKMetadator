@@ -239,21 +239,6 @@
     return [self processMake180VRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
 }
 
-- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage
-{
-    CIImage *ciimage = [CIImage imageWithCGImage:sbsImage.CGImage];
-    CGRect rect;
-    if (left) {
-        rect = CGRectMake(0, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
-    }
-    else {
-        rect = CGRectMake(ciimage.extent.size.width/2, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
-    }
-    
-    CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:rect];
-    return [UIImage imageWithCGImage:cgImage];
-}
-
 - (nonnull NSDictionary *)pano360ParamsWithSize:(CGSize)size
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
@@ -578,10 +563,16 @@
     if ([self resizeAspect:aspect image:leftImage withProperties:nil andWriteURL:tempLeftURL] &&
         [self resizeAspect:aspect image:rightImage withProperties:nil andWriteURL:tempRightURL])
     {
-        //Base64EncodedImageData
         NSError *error;
         NSData *rightImageData = [NSData dataWithContentsOfURL:tempRightURL options:0 error:&error];
-        NSString *stringData = [[NSString alloc] initWithData:rightImageData encoding:NSDataBase64DecodingIgnoreUnknownCharacters];
+        UIImage *rightImage = [UIImage imageWithData:rightImageData];
+        
+        CIImage *ciimage = [CIImage imageWithCGImage:rightImage.CGImage];
+        CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:ciimage.extent];
+        UIImage *clearImage =  [UIImage imageWithCGImage:cgImage];
+        
+        NSData *clearImageData = UIImageJPEGRepresentation(clearImage, 1.0);        
+        NSString *stringData = [clearImageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
         
         if (stringData)
         {
@@ -1013,14 +1004,17 @@
     
     if (params[Data])
     {
+        CFStringRef str = (__bridge CFStringRef)params[Data];
+                                                 
         CGImageMetadataTagRef dataTag =
         CGImageMetadataTagCreate((CFStringRef)GoogleNamespace,
                                  (CFStringRef)GImage,
                                  (CFStringRef)Data,
                                  kCGImageMetadataTypeString,
-                                 (CFTypeRef)params[Data]);
+                                 (CFTypeRef)str);
         
         result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(GImage, Data), dataTag);
+        
         CFRelease(dataTag);
     }
     
@@ -1071,6 +1065,21 @@
     });
     
     return result;
+}
+
+- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage
+{
+    CIImage *ciimage = [CIImage imageWithCGImage:sbsImage.CGImage];
+    CGRect rect;
+    if (left) {
+        rect = CGRectMake(0, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
+    }
+    else {
+        rect = CGRectMake(ciimage.extent.size.width/2, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
+    }
+    
+    CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:rect];
+    return [UIImage imageWithCGImage:cgImage];
 }
 
 @end
