@@ -79,11 +79,13 @@ NS_ASSUME_NONNULL_BEGIN
  * @brief writer image with meta/props
  * @param image indicates UIImage
  * @param meta indicates metadata CGImageMetadataRef
+ * @param aux indicates auxiliarity dictionary
  * @param props indicates properties NSDictionary with obvious format
  * @return result
  */
 - (BOOL)writeImage:(UIImage *)image
           withMeta:(nullable CGImageMetadataRef)meta
+           auxDict:(nullable NSDictionary *)aux
         properties:(nullable NSDictionary *)props
              atURL:(nonnull NSURL *)imageURL;
 
@@ -131,6 +133,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (nonnull OKMetaParam *)metaParamsFromMetadata:(nonnull CGImageMetadataRef)meta;
 
+/*!
+ * @brief Extract auxiliarity dictionary from meta params
+ * @param params indicates NSDictionary with @MetaFormat
+ * @return NSDictionary
+ */
+- (nullable NSDictionary *)auxDictionaryFromMetaParams:(OKMetaParam *)params;
 
 
 /*!

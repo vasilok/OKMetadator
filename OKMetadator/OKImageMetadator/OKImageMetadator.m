@@ -129,17 +129,19 @@
 
 - (BOOL)writeImage:(UIImage *)image
           withMeta:(nullable CGImageMetadataRef)meta
+           auxDict:(nullable NSDictionary *)aux
         properties:(nullable NSDictionary *)props
              atURL:(nonnull NSURL *)imageURL
 {
-    return [self processImage:image properties:props meta:meta atURL:imageURL];
+    return [self processImage:image properties:props meta:meta aux:aux atURL:imageURL];
 }
 
 - (BOOL)writeImage:(UIImage *)image withMetaParams:(nullable OKMetaParam *)metaParams properties:(nullable NSDictionary *)props atURL:(nonnull NSURL *)imageURL
 {
     CGImageMetadataRef metadata = [self metadataFromMetaParams:metaParams];
+    NSDictionary *aux = [self auxDictionaryFromMetaParams:metaParams];
     
-    BOOL result = [self processImage:image properties:props meta:metadata atURL:imageURL];
+    BOOL result = [self processImage:image properties:props meta:metadata aux:aux atURL:imageURL];
     
     CFRelease(metadata);
     
@@ -262,6 +264,12 @@
     
     for (NSString *namespace in params.allKeys)
     {
+        if ([namespace isEqualToString:AUX_DATA] ||
+            [namespace isEqualToString:AUX_INFO] ||
+            [namespace isEqualToString:AUX_META]) {
+            continue;
+        }
+        
         NSDictionary *param = params[namespace];
         
         CFErrorRef error;
@@ -423,6 +431,44 @@
                              (__bridge CFTypeRef _Nonnull)(resValue));
     
     return dicTag;
+}
+
+- (nullable NSDictionary *)auxDictionaryFromMetaParams:(OKMetaParam *)params
+{
+    NSData *data = nil;
+    NSDictionary *info = nil;
+    NSDictionary *meta = nil;
+    
+    for (NSString *namespace in params.allKeys)
+    {
+        if ([namespace isEqualToString:AUX_DATA])
+        {
+            data = (NSData *)params[namespace];
+        }
+        if ([namespace isEqualToString:AUX_INFO])
+        {
+            info = params[namespace];
+        }
+        if ([namespace isEqualToString:AUX_META])
+        {
+            meta = params[namespace];
+        }
+    }
+    
+    if ((data == nil) || (info == nil) || (meta == nil)) {
+        return nil;
+    }
+    
+    CGImageMetadataRef metadata = [self metadataFromMetaParams:meta];
+    if (metadata == NULL) {
+        return nil;
+    }
+    
+    NSDictionary *result = @{ AUX_DATA : data, AUX_INFO : info, AUX_META : (__bridge id _Nullable)(metadata) };
+    
+    CFRelease(metadata);
+    
+    return result;
 }
 
 - (nonnull OKMetaParam *)metaParamsFromMetadata:(nonnull CGImageMetadataRef)meta
@@ -848,11 +894,15 @@ withProperties:(nullable NSDictionary *)props
     [mutProps setObject:@(0) forKey:@"Orientation"];
     [mutProps setObject:@(width) forKey:(NSString*)kCGImagePropertyPixelWidth];
     [mutProps setObject:@(height) forKey:(NSString*)kCGImagePropertyPixelHeight];
-    
-    return [self processImage:image properties:mutProps meta:nil atURL:url];
+
+    return [self processImage:image properties:mutProps meta:nil aux:nil atURL:url];
 }
 
-- (BOOL)processImage:(nonnull UIImage *)image properties:(nullable NSDictionary *)properties meta:(CGImageMetadataRef)meta atURL:(nonnull NSURL *)url
+- (BOOL)processImage:(nonnull UIImage *)image
+          properties:(nullable NSDictionary *)properties
+                meta:(CGImageMetadataRef)meta
+                 aux:(NSDictionary *)aux
+               atURL:(nonnull NSURL *)url
 {
     BOOL result = YES;
     CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
@@ -883,19 +933,10 @@ withProperties:(nullable NSDictionary *)props
         CGImageDestinationAddImage(destination, image.CGImage, (CFDictionaryRef)properties);
     }
     
-    
-    
-    /* Depth data support for JPEG, HEIF, and DNG images.
-     * The auxiliaryDataInfoDictionary should contain:
-     *   - the depth data (CFDataRef) - (kCGImageAuxiliaryDataInfoData),
-     *   - the depth data description (CFDictionary) - (kCGImageAuxiliaryDataInfoDataDescription)
-     *   - metadata (CGImageMetadataRef) - (kCGImageAuxiliaryDataInfoMetadata)
-     * To add depth data to an image, call CGImageDestinationAddAuxiliaryDataInfo() after adding the CGImage to the CGImageDestinationRef.
-     */
-   // IMAGEIO_EXTERN void CGImageDestinationAddAuxiliaryDataInfo(CGImageDestinationRef _iio_Nonnull idst, CFStringRef _iio_Nonnull auxiliaryImageDataType, CFDictionaryRef _iio_Nonnull auxiliaryDataInfoDictionary ) IMAGEIO_AVAILABLE_STARTING(10.13, 11.0);
-    
-    
-    
+    if (aux)
+    {
+        CGImageDestinationAddAuxiliaryDataInfo(destination, kCGImageAuxiliaryDataTypeDisparity, (CFDictionaryRef)aux);
+    }
     
     result = CGImageDestinationFinalize(destination);
     if (result == NO)

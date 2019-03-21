@@ -803,6 +803,11 @@
     [other removeObjectForKey:PanoNamespace];
     [other removeObjectForKey:GoogleNamespace];
     [other removeObjectForKey:AppleNamespace];
+    
+    [other removeObjectForKey:AUX_DATA];
+    [other removeObjectForKey:AUX_INFO];
+    [other removeObjectForKey:AUX_META];
+    
     if ([self setOtherParams:[other copy] toMeta:destMetadata] == NO)
     {
         os_log_error(OS_LOG_DEFAULT, "Setting other params fails");
@@ -821,7 +826,13 @@
     }
     CGImageDestinationAddImageAndMetadata(destination, image, destMetadata, NULL);
     
-    //CGImageDestinationSetProperties(destination, <#CFDictionaryRef  _Nullable properties#>)
+    NSDictionary *aux = [self auxDictionaryFromMetaParams:param];
+    if (aux)
+    {
+        CGImageDestinationAddAuxiliaryDataInfo(destination, kCGImageAuxiliaryDataTypeDisparity, (CFDictionaryRef)aux);
+    }
+    
+    //CGImageDestinationSetProperties(destination, props);
     
     if(CGImageDestinationFinalize(destination) == NO)
     {

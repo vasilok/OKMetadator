@@ -42,6 +42,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
 
+// Auxiliarity
 #define AUX_DATA CFBridgingRelease(kCGImageAuxiliaryDataInfoData)
 #define AUX_INFO CFBridgingRelease(kCGImageAuxiliaryDataInfoDataDescription)
 #define AUX_META CFBridgingRelease(kCGImageAuxiliaryDataInfoMetadata)
