@@ -42,6 +42,10 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
 
+#define AUX_DATA CFBridgingRelease(kCGImageAuxiliaryDataInfoData)
+#define AUX_INFO CFBridgingRelease(kCGImageAuxiliaryDataInfoDataDescription)
+#define AUX_META CFBridgingRelease(kCGImageAuxiliaryDataInfoMetadata)
+
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"
 #define LastPhotoDate                @"LastPhotoDate"

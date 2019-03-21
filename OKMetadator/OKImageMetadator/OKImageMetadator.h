@@ -26,11 +26,40 @@ NS_ASSUME_NONNULL_BEGIN
 - (CGImageMetadataRef)metaFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
+ * @brief extract auxiliary metadata of image at URL.
+ * @param url indicates image file URL
+ * @return CGImageMetadataRef. Caller is responsible of lifetime of object
+ */
+- (CGImageMetadataRef)auxMetaFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief extract auxiliary data of image at URL.
+ * @param url indicates image file URL
+ * @return NSDictionary.
+ */
+- (NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
  * @brief extract metadata of image at URL in friendly format
  * @param url indicates image file URL
  * @return NSDictionary with @MetaFormat
  */
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief extract auxiliary metadata of image at URL in friendly format
+ * @param url indicates image file URL
+ * @return NSDictionary with @MetaFormat
+ */
+- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief extract all available metadata of image at URL in friendly format.
+ * Including trivial metadata and auxiliary data
+ * @param url indicates image file URL
+ * @return NSDictionary with @MetaFormat
+ */
+- (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief extract XMP data of image at URL

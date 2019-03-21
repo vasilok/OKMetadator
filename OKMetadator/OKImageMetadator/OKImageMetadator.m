@@ -30,6 +30,43 @@
     return metadata;
 }
 
+- (CGImageMetadataRef)auxMetaFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return nil;
+    }
+    
+    NSDictionary *dict = CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, kCGImageAuxiliaryDataTypeDisparity));
+    
+    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:AUX_META]);
+    
+    return meta;
+}
+
+- (NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return nil;
+    }
+    
+    NSMutableDictionary *dict = [CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, kCGImageAuxiliaryDataTypeDisparity)) mutableCopy];
+    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:AUX_META]);
+    dict[AUX_META] = [self metaParamsFromMetadata:meta];
+    CFRelease(meta);
+    
+    return [dict copy];
+}
+
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
 {
     CGImageMetadataRef metadata = [self metaFromImageAtURL:url];
@@ -44,6 +81,32 @@
     CFRelease(metadata);
     
     return dict;
+}
+
+- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url
+{
+    CGImageMetadataRef metadata = [self auxMetaFromImageAtURL:url];
+    if (metadata == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create metadata");
+        return nil;
+    }
+    
+    NSDictionary *dict = [self metaParamsFromMetadata:metadata];
+    
+    CFRelease(metadata);
+    
+    return dict;
+}
+
+- (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url
+{
+    NSMutableDictionary *full = [NSMutableDictionary new];
+    
+    [full addEntriesFromDictionary:[self metaParamsFromImageAtURL:url]];
+    [full addEntriesFromDictionary:[self auxDictionaryFromImageAtURL:url]];
+    
+    return [full copy];
 }
 
 - (nullable NSDictionary *)propertiesFromImageAtURL:(nonnull NSURL *)url
@@ -819,6 +882,20 @@ withProperties:(nullable NSDictionary *)props
     {
         CGImageDestinationAddImage(destination, image.CGImage, (CFDictionaryRef)properties);
     }
+    
+    
+    
+    /* Depth data support for JPEG, HEIF, and DNG images.
+     * The auxiliaryDataInfoDictionary should contain:
+     *   - the depth data (CFDataRef) - (kCGImageAuxiliaryDataInfoData),
+     *   - the depth data description (CFDictionary) - (kCGImageAuxiliaryDataInfoDataDescription)
+     *   - metadata (CGImageMetadataRef) - (kCGImageAuxiliaryDataInfoMetadata)
+     * To add depth data to an image, call CGImageDestinationAddAuxiliaryDataInfo() after adding the CGImage to the CGImageDestinationRef.
+     */
+   // IMAGEIO_EXTERN void CGImageDestinationAddAuxiliaryDataInfo(CGImageDestinationRef _iio_Nonnull idst, CFStringRef _iio_Nonnull auxiliaryImageDataType, CFDictionaryRef _iio_Nonnull auxiliaryDataInfoDictionary ) IMAGEIO_AVAILABLE_STARTING(10.13, 11.0);
+    
+    
+    
     
     result = CGImageDestinationFinalize(destination);
     if (result == NO)

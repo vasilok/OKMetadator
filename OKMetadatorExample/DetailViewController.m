@@ -54,7 +54,7 @@
     _videoMetadator = nil;
     _imageMetadator = [OKImageSphericalMetadator new];
     
-    _meta = [_imageMetadator metaParamsFromImageAtURL:_URL];
+    _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
     
     self.title = [_URL lastPathComponent];
