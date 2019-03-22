@@ -1092,7 +1092,10 @@
     }
     
     CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:rect];
-    return [UIImage imageWithCGImage:cgImage];
+    UIImage *image = [UIImage imageWithCGImage:cgImage];
+    CGImageRelease(cgImage);
+    
+    return image;
 }
 
 @end

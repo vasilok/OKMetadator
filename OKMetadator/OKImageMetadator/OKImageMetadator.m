@@ -30,25 +30,7 @@
     return metadata;
 }
 
-- (CGImageMetadataRef)auxMetaFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
-        return nil;
-    }
-    
-    NSDictionary *dict = CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, kCGImageAuxiliaryDataTypeDisparity));
-    
-    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:CFS(AUX_META)]);
-    
-    return meta;
-}
-
-- (nullable NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url
+- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
     
@@ -77,6 +59,8 @@
             [aux setObject:matte forKey:CFS(AUX_MATTE)];
         }
     }
+    
+    CFRelease(source);
     
     if (aux.allKeys.count == 0) {
         return nil;
@@ -115,28 +99,12 @@
     return dict;
 }
 
-- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url
-{
-    CGImageMetadataRef metadata = [self auxMetaFromImageAtURL:url];
-    if (metadata == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create metadata");
-        return nil;
-    }
-    
-    NSDictionary *dict = [self metaParamsFromMetadata:metadata];
-    
-    CFRelease(metadata);
-    
-    return dict;
-}
-
 - (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url
 {
     NSMutableDictionary *full = [NSMutableDictionary new];
     
     [full addEntriesFromDictionary:[self metaParamsFromImageAtURL:url]];
-    [full addEntriesFromDictionary:[self auxDictionaryFromImageAtURL:url]];
+    [full addEntriesFromDictionary:[self auxMetaParamsFromImageAtURL:url]];
     
     return [full copy];
 }
