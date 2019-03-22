@@ -37,7 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param url indicates image file URL
  * @return NSDictionary.
  */
-- (NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url;
+- (nullable NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief extract metadata of image at URL in friendly format

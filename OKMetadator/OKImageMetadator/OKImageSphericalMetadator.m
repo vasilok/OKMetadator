@@ -804,9 +804,11 @@
     [other removeObjectForKey:GoogleNamespace];
     [other removeObjectForKey:AppleNamespace];
     
-    [other removeObjectForKey:AUX_DATA];
-    [other removeObjectForKey:AUX_INFO];
-    [other removeObjectForKey:AUX_META];
+    [other removeObjectForKey:CFS(AUX_DEPTH)];
+    [other removeObjectForKey:CFS(AUX_DISPARITY)];
+    if (@available(iOS 12.0, *)) {
+        [other removeObjectForKey:CFS(AUX_MATTE)];
+    }
     
     if ([self setOtherParams:[other copy] toMeta:destMetadata] == NO)
     {
@@ -827,9 +829,9 @@
     CGImageDestinationAddImageAndMetadata(destination, image, destMetadata, NULL);
     
     NSDictionary *aux = [self auxDictionaryFromMetaParams:param];
-    if (aux)
+    for (NSString *type in aux.allKeys)
     {
-        CGImageDestinationAddAuxiliaryDataInfo(destination, kCGImageAuxiliaryDataTypeDisparity, (CFDictionaryRef)aux);
+        CGImageDestinationAddAuxiliaryDataInfo(destination, (CFStringRef)type, (CFDictionaryRef)(aux[type]));
     }
     
     //CGImageDestinationSetProperties(destination, props);

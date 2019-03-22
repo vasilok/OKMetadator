@@ -43,9 +43,13 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define hasXMP @"hasXMP"
 
 // Auxiliarity
-#define AUX_DATA CFBridgingRelease(kCGImageAuxiliaryDataInfoData)
-#define AUX_INFO CFBridgingRelease(kCGImageAuxiliaryDataInfoDataDescription)
-#define AUX_META CFBridgingRelease(kCGImageAuxiliaryDataInfoMetadata)
+#define AUX_DEPTH     kCGImageAuxiliaryDataTypeDepth
+#define AUX_DISPARITY kCGImageAuxiliaryDataTypeDisparity
+#define AUX_MATTE     kCGImageAuxiliaryDataTypePortraitEffectsMatte
+
+#define AUX_DATA kCGImageAuxiliaryDataInfoData
+#define AUX_INFO kCGImageAuxiliaryDataInfoDataDescription
+#define AUX_META kCGImageAuxiliaryDataInfoMetadata
 
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"
@@ -97,5 +101,6 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define PP(prefix, param) [NSString stringWithFormat:@"%@:%@", prefix, param]
 
+#define CFS(stringref) CFBridgingRelease(stringref)
 
 #endif /* VSMetadator_h */

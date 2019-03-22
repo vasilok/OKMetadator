@@ -43,12 +43,12 @@
     
     NSDictionary *dict = CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, kCGImageAuxiliaryDataTypeDisparity));
     
-    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:AUX_META]);
+    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:CFS(AUX_META)]);
     
     return meta;
 }
 
-- (NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url
+- (nullable NSDictionary *)auxDictionaryFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
     
@@ -59,10 +59,42 @@
         return nil;
     }
     
-    NSMutableDictionary *dict = [CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, kCGImageAuxiliaryDataTypeDisparity)) mutableCopy];
-    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:AUX_META]);
-    dict[AUX_META] = [self metaParamsFromMetadata:meta];
-    CFRelease(meta);
+    NSMutableDictionary *aux = [NSMutableDictionary new];
+    
+    NSDictionary *depth = [self auxDictionaryFromSource:source withType:AUX_DEPTH];
+    if (depth) {
+        [aux setObject:depth forKey:CFS(AUX_DEPTH)];
+    }
+    
+    NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
+    if (disparity) {
+        [aux setObject:disparity forKey:CFS(AUX_DISPARITY)];
+    }
+    
+    if (@available(iOS 12.0, *)) {
+        NSDictionary *matte = [self auxDictionaryFromSource:source withType:AUX_MATTE];
+        if (matte) {
+            [aux setObject:matte forKey:CFS(AUX_MATTE)];
+        }
+    }
+    
+    if (aux.allKeys.count == 0) {
+        return nil;
+    }
+    
+    return [aux copy];
+}
+
+- (NSDictionary *)auxDictionaryFromSource:(CGImageSourceRef)source withType:(CFStringRef)type
+{
+    NSMutableDictionary *dict = [CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, type)) mutableCopy];
+    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:CFS(AUX_META)]);
+    
+    if (meta)
+    {
+        dict[CFS(AUX_META)] = [self metaParamsFromMetadata:meta];
+        CFRelease(meta);
+    }
     
     return [dict copy];
 }
@@ -264,10 +296,14 @@
     
     for (NSString *namespace in params.allKeys)
     {
-        if ([namespace isEqualToString:AUX_DATA] ||
-            [namespace isEqualToString:AUX_INFO] ||
-            [namespace isEqualToString:AUX_META]) {
+        if ([namespace isEqualToString:CFS(AUX_DEPTH)] ||
+            [namespace isEqualToString:CFS(AUX_DISPARITY)]) {
             continue;
+        }
+        if (@available(iOS 12.0, *)) {
+            if ([namespace isEqualToString:CFS(AUX_MATTE)]) {
+                continue;
+            }
         }
         
         NSDictionary *param = params[namespace];
@@ -435,23 +471,56 @@
 
 - (nullable NSDictionary *)auxDictionaryFromMetaParams:(OKMetaParam *)params
 {
+    NSMutableDictionary *auxDict = [NSMutableDictionary new];
+    
+    NSDictionary *depth = [self auxDictionaryFromMetaParams:params withType:AUX_DEPTH];
+    if (depth) {
+        [auxDict setObject:depth forKey:CFS(AUX_DEPTH)];
+    }
+    
+    NSDictionary *disparity = [self auxDictionaryFromMetaParams:params withType:AUX_DISPARITY];
+    if (disparity) {
+        [auxDict setObject:disparity forKey:CFS(AUX_DISPARITY)];
+    }
+    
+    if (@available(iOS 12.0, *)) {
+        NSDictionary *matte = [self auxDictionaryFromMetaParams:params withType:AUX_MATTE];
+        if (matte) {
+            [auxDict setObject:matte forKey:CFS(AUX_MATTE)];
+        }
+    }
+    
+    if (auxDict.allKeys.count == 0) {
+        return nil;
+    }
+    
+    return [auxDict copy];
+}
+
+- (nullable NSDictionary *)auxDictionaryFromMetaParams:(OKMetaParam *)params withType:(CFStringRef)type
+{
+    NSDictionary *typeDict = params[CFBridgingRelease(type)];
+    if (typeDict == nil) {
+        return nil;
+    }
+    
     NSData *data = nil;
     NSDictionary *info = nil;
     NSDictionary *meta = nil;
     
-    for (NSString *namespace in params.allKeys)
+    for (NSString *key in typeDict.allKeys)
     {
-        if ([namespace isEqualToString:AUX_DATA])
+        if ([key isEqualToString:CFS(AUX_DATA)])
         {
-            data = (NSData *)params[namespace];
+            data = (NSData *)typeDict[key];
         }
-        if ([namespace isEqualToString:AUX_INFO])
+        if ([key isEqualToString:CFS(AUX_INFO)])
         {
-            info = params[namespace];
+            info = typeDict[key];
         }
-        if ([namespace isEqualToString:AUX_META])
+        if ([key isEqualToString:CFS(AUX_META)])
         {
-            meta = params[namespace];
+            meta = typeDict[key];
         }
     }
     
@@ -464,7 +533,7 @@
         return nil;
     }
     
-    NSDictionary *result = @{ AUX_DATA : data, AUX_INFO : info, AUX_META : (__bridge id _Nullable)(metadata) };
+    NSDictionary *result = @{ CFS(AUX_DATA) : data, CFS(AUX_INFO) : info, CFS(AUX_META) : (__bridge id _Nullable)(metadata) };
     
     CFRelease(metadata);
     
@@ -933,9 +1002,9 @@ withProperties:(nullable NSDictionary *)props
         CGImageDestinationAddImage(destination, image.CGImage, (CFDictionaryRef)properties);
     }
     
-    if (aux)
+    for (NSString *type in aux.allKeys)
     {
-        CGImageDestinationAddAuxiliaryDataInfo(destination, kCGImageAuxiliaryDataTypeDisparity, (CFDictionaryRef)aux);
+        CGImageDestinationAddAuxiliaryDataInfo(destination, (CFStringRef)type, (CFDictionaryRef)(aux[type]));
     }
     
     result = CGImageDestinationFinalize(destination);
