@@ -23,7 +23,7 @@
         os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
         return nil;
     }
-    
+        
     CGImageMetadataRef metadata = CGImageSourceCopyMetadataAtIndex(source, 0, NULL);
     CFRelease(source);
     
@@ -962,8 +962,8 @@ withProperties:(nullable NSDictionary *)props
     
     if (meta != NULL)
     {
-        CGImageDestinationAddImageAndMetadata(destination, image.CGImage, meta, NULL);
         CGImageDestinationSetProperties(destination, (CFDictionaryRef)properties);
+        CGImageDestinationAddImageAndMetadata(destination, image.CGImage, meta, NULL);
     }
     else
     {
