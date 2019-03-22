@@ -65,7 +65,8 @@ NS_ASSUME_NONNULL_BEGIN
  * @brief writer image with meta/props
  * @param image indicates UIImage
  * @param meta indicates metadata CGImageMetadataRef
- * @param aux indicates auxiliarity dictionary
+ * @param aux indicates auxiliarity dictionary.
+ * If not nil this can reject some metadata from @meta param.
  * @param props indicates properties NSDictionary with obvious format
  * @return result
  */

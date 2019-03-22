@@ -826,15 +826,10 @@
         CFRelease(destMetadata);
         return NO;
     }
+    
     CGImageDestinationAddImageAndMetadata(destination, image, destMetadata, NULL);
     
-    NSDictionary *aux = [self auxDictionaryFromMetaParams:param];
-    for (NSString *type in aux.allKeys)
-    {
-        CGImageDestinationAddAuxiliaryDataInfo(destination, (CFStringRef)type, (CFDictionaryRef)(aux[type]));
-    }
-    
-    //CGImageDestinationSetProperties(destination, props);
+    //Auxiliary removes GPano meta, so wont be added
     
     if(CGImageDestinationFinalize(destination) == NO)
     {
