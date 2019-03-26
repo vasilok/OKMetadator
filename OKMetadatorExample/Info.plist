@@ -8,6 +8,8 @@
 	<string>App needs access to photos to export files to camera roll</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>App needs access to photos to export files to camera roll</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>App needs access to mic</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>

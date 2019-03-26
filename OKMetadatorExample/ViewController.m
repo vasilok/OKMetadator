@@ -48,57 +48,82 @@
 {
     [picker dismissViewControllerAnimated:YES completion:^{ }];
     
+    NSLog(@"INFO: %@ ", info);
+    
     PHAsset *phAsset = [info objectForKey:UIImagePickerControllerPHAsset];
-    NSString *ext = [[info objectForKey:UIImagePickerControllerMediaURL] pathExtension];
-
-    if (phAsset.mediaType == PHAssetMediaTypeImage)
+    
+    if (phAsset) // library
     {
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
-        [_librarian fetchImage:phAsset toURL:tempURL withCompletion:^(BOOL success) {
-            if (success)
-            {
-                DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
-                [detailVC setLibrarian:self.librarian];
-                [detailVC setupWithImageURL:tempURL];
-                [self.navigationController pushViewController:detailVC animated:YES];
-            }
-        }];
-    }
-    else if (phAsset.mediaType == PHAssetMediaTypeVideo)  
-    {
-        NSURL *tempURL = [Librarian tempVideoURLWithExtension:ext];
-        [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {
-            if (success)
-            {
-                DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
-                [detailVC setLibrarian:self.librarian];
-                [detailVC setupWithVideoURL:tempURL];
-                [self.navigationController pushViewController:detailVC animated:YES];
-            }
-        }];
-    }
-    else if (phAsset == nil)// camera
-    {
-        UIImage *image = info[UIImagePickerControllerOriginalImage];
-        NSDictionary *meta = info[UIImagePickerControllerMediaMetadata];
-        NSLog(@"Picker Input Meta: %@", meta);
-        NSLog(@"Picker Image Orientation - %ld", image.imageOrientation);
+        NSString *ext = [[info objectForKey:UIImagePickerControllerMediaURL] pathExtension];
         
-        NSError *error;
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
-        if ([UIImageJPEGRepresentation(image, 1) writeToURL:tempURL atomically:YES] == NO)
+        if (phAsset.mediaType == PHAssetMediaTypeImage)
         {
-            NSLog(@"Errro: %@", error);
-            return;
+            NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
+            [_librarian fetchImage:phAsset toURL:tempURL withCompletion:^(BOOL success) {
+                if (success)
+                {
+                    DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
+                    [detailVC setLibrarian:self.librarian];
+                    [detailVC setupWithImageURL:tempURL];
+                    [self.navigationController pushViewController:detailVC animated:YES];
+                }
+            }];
         }
+        else if (phAsset.mediaType == PHAssetMediaTypeVideo)
+        {
+            NSURL *tempURL = [Librarian tempVideoURLWithExtension:ext];
+            [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {
+                if (success)
+                {
+                    DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
+                    [detailVC setLibrarian:self.librarian];
+                    [detailVC setupWithVideoURL:tempURL];
+                    [self.navigationController pushViewController:detailVC animated:YES];
+                }
+            }];
+        }
+    }
+    else
+    {
+        NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
         
-        dispatch_async(dispatch_get_main_queue(), ^
-                       {
-                           DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
-                           [detailVC setLibrarian:self.librarian];
-                           [detailVC setupWithImageURL:tempURL];
-                           [self.navigationController pushViewController:detailVC animated:YES];
-                       });
+        if (type == (NSString *)kUTTypeImage)
+        {
+            UIImage *image = info[UIImagePickerControllerOriginalImage];
+            NSString *ext = [[info objectForKey:UIImagePickerControllerMediaURL] pathExtension];
+
+            if (image)
+            {
+                NSDictionary *meta = info[UIImagePickerControllerMediaMetadata];
+                NSLog(@"Picker Input Meta: %@", meta);
+                NSLog(@"Picker Image Orientation - %ld", image.imageOrientation);
+
+                NSError *error;
+                NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
+                if ([UIImageJPEGRepresentation(image, 1) writeToURL:tempURL atomically:YES] == NO)
+                {
+                    NSLog(@"Errro: %@", error);
+                    return;
+                }
+
+                dispatch_async(dispatch_get_main_queue(), ^
+                               {
+                                   DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
+                                   [detailVC setLibrarian:self.librarian];
+                                   [detailVC setupWithImageURL:tempURL];
+                                   [self.navigationController pushViewController:detailVC animated:YES];
+                               });
+            }
+        }
+        else if (type == (NSString *)kUTTypeMovie)
+        {
+            NSURL *url = [info objectForKey:UIImagePickerControllerMediaURL];
+            
+            DetailViewController *detailVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"DetailViewController"];
+            [detailVC setLibrarian:self.librarian];
+            [detailVC setupWithVideoURL:url];
+            [self.navigationController pushViewController:detailVC animated:YES];
+        }
     }
 }
 
