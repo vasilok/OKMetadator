@@ -18,6 +18,7 @@
 @property (weak, nonatomic) IBOutlet UITextField *hFOVField;
 @property (weak, nonatomic) IBOutlet UITextField *vFOVField;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *heightMetaViewConstraint;
 @property (weak, nonatomic) IBOutlet UIButton *vrBtn;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
@@ -29,6 +30,7 @@
 
 #define CLOSED 60
 #define OPEN 100
+#define SHOW_PROPERTIES NO
 
 @implementation DetailViewController
 
@@ -91,6 +93,12 @@
     
     [_metaView setText:[_meta description]];
     [_propView setText:[_params description]];
+    
+    if (SHOW_PROPERTIES == NO)
+    {
+        _heightMetaViewConstraint.active = NO;
+        _metaView.frame = _metaView.superview.bounds;
+    }
     
     _topMetasConstraint.constant = CLOSED;
     

@@ -35,7 +35,6 @@
 		0487D5F52228271200B63C66 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5F42228271200B63C66 /* main.m */; };
 		0487D6012228278500B63C66 /* OKImageMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5FC2228278500B63C66 /* OKImageMetadator.m */; };
 		0487D6022228278500B63C66 /* OKImageSphericalMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5FF2228278500B63C66 /* OKImageSphericalMetadator.m */; };
-		0487D6042228282C00B63C66 /* Image1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 0487D6032228282C00B63C66 /* Image1.jpg */; };
 		0487D607222833E900B63C66 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D606222833E900B63C66 /* DetailViewController.m */; };
 		0487D60A2229327300B63C66 /* Librarian.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D6092229327300B63C66 /* Librarian.m */; };
 /* End PBXBuildFile section */
@@ -89,7 +88,6 @@
 		0487D5FE2228278500B63C66 /* OKMetadator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OKMetadator.h; sourceTree = "<group>"; };
 		0487D5FF2228278500B63C66 /* OKImageSphericalMetadator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OKImageSphericalMetadator.m; sourceTree = "<group>"; };
 		0487D6002228278500B63C66 /* OKImageMetadator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OKImageMetadator.h; sourceTree = "<group>"; };
-		0487D6032228282C00B63C66 /* Image1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Image1.jpg; sourceTree = "<group>"; };
 		0487D605222833E800B63C66 /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
 		0487D606222833E900B63C66 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		0487D6082229327300B63C66 /* Librarian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Librarian.h; sourceTree = "<group>"; };
@@ -210,7 +208,6 @@
 				0487D5E92228271100B63C66 /* ViewController.m */,
 				0487D605222833E800B63C66 /* DetailViewController.h */,
 				0487D606222833E900B63C66 /* DetailViewController.m */,
-				0487D6032228282C00B63C66 /* Image1.jpg */,
 				0487D5EB2228271100B63C66 /* Main.storyboard */,
 				0487D5EE2228271200B63C66 /* Assets.xcassets */,
 				0487D5F02228271200B63C66 /* LaunchScreen.storyboard */,
@@ -289,7 +286,6 @@
 			files = (
 				04097AB4222FC7CF0048416C /* README.md in Resources */,
 				0487D5F22228271200B63C66 /* LaunchScreen.storyboard in Resources */,
-				0487D6042228282C00B63C66 /* Image1.jpg in Resources */,
 				0487D5EF2228271200B63C66 /* Assets.xcassets in Resources */,
 				0487D5ED2228271100B63C66 /* Main.storyboard in Resources */,
 				04097AB3222FC7CF0048416C /* LICENSE in Resources */,
