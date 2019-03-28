@@ -245,11 +245,6 @@
     
     updParams[CaptureSoftware] = [self captureSoftware];
     updParams[ProjectionType] = equirectangular;
-    updParams[InitialViewHeadingDegrees] = @(0);
-    updParams[InitialViewPitchDegrees] = @(0);
-    updParams[InitialViewRollDegrees] = @(0);
-    updParams[InitialHorizontalFOVDegrees] = @(75.0);
-    updParams[PoseHeadingDegrees] = @(360);
     updParams[FullPanoWidthPixels] = @(size.width);
     updParams[FullPanoHeightPixels] = @(size.height);
     updParams[CroppedAreaImageWidthPixels] = @(size.width);
@@ -266,11 +261,6 @@
     
     updParams[CaptureSoftware] = [self captureSoftware];
     updParams[ProjectionType] = equirectangular;
-    updParams[InitialViewHeadingDegrees] = @(0);
-    updParams[InitialViewPitchDegrees] = @(0);
-    updParams[InitialViewRollDegrees] = @(0);
-    updParams[InitialHorizontalFOVDegrees] = @(75.0);
-    updParams[PoseHeadingDegrees] = @(180);
     updParams[FullPanoWidthPixels] = @(size.width * 2);
     updParams[FullPanoHeightPixels] = @(size.height);
     updParams[CroppedAreaImageWidthPixels] = @(size.width);

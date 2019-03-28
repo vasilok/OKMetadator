@@ -59,6 +59,10 @@
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
     
+    CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
+    NSLog(@"Metadata : \n %@", metadata);
+    if (metadata) CFRelease(metadata);
+    
     self.title = [_URL lastPathComponent];
     
     [self setup];
