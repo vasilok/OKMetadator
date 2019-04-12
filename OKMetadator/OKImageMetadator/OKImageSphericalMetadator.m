@@ -103,6 +103,7 @@
                        completion:(nullable OKSphereMetaInjectorCompletion)completion;
 {
     NSAssert(url && outputURL, @"Unexpected NIL!");
+    NSAssert((horizntalFOV > 0) || (verticalFOV > 0), @"Unexpected params!");
     
     __weak typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
@@ -126,6 +127,7 @@
            completion:(nullable OKSphereMetaInjectorCompletion)completion
 {
     NSAssert(image && outputURL, @"Unexpected NIL!");
+    NSAssert((horizntalFOV > 0) || (verticalFOV > 0), @"Unexpected params!");
     
     __weak typeof(self) blockSelf = self;
     dispatch_async(dispatch_get_global_queue(0, 0), ^
@@ -467,18 +469,29 @@
     return result;
 }
 
-- (BOOL)processMake:(CGFloat)horizntalFOV verticalFOV:(CGFloat)verticalFOV meta:(OKMetaParam *)meta image:(UIImage *)image outputURL:(NSURL *)outputURL
+- (BOOL)processMake:(CGFloat)horizontalFOV verticalFOV:(CGFloat)verticalFOV meta:(OKMetaParam *)meta image:(UIImage *)image outputURL:(NSURL *)outputURL
 {
     NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
     NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
     
     CGSize size = CGSizeMake(image.size.width, image.size.height);
     
-    CGFloat aspect = horizntalFOV / verticalFOV;
+    if ((horizontalFOV > 0) && (verticalFOV <= 0))
+    {
+        CGFloat widthAspect = size.width/size.height;
+        verticalFOV = horizontalFOV / widthAspect;
+    }
+    else if ((verticalFOV > 0) && (horizontalFOV <= 0))
+    {
+        CGFloat widthAspect = size.width/size.height;
+        horizontalFOV = verticalFOV * widthAspect;
+    }
+    
+    CGFloat aspect = horizontalFOV / verticalFOV;
     CGFloat delta = aspect/(size.width/size.height);
     CGSize renderSize = CGSizeMake(roundf((size.width * delta)), roundf(size.height));
     
-    NSDictionary *panoParams = [self panoParams:horizntalFOV vFov:verticalFOV withSize:renderSize];
+    NSDictionary *panoParams = [self panoParams:horizontalFOV vFov:verticalFOV withSize:renderSize];
     NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];;
     [allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
     
@@ -493,7 +506,7 @@
     return result;
 }
 
-- (BOOL)processMake:(CGFloat)horizntalFOV verticalFOV:(CGFloat)verticalFOV imageAtURL:(NSURL *)url outputURL:(NSURL *)outputURL
+- (BOOL)processMake:(CGFloat)horizontalFOV verticalFOV:(CGFloat)verticalFOV imageAtURL:(NSURL *)url outputURL:(NSURL *)outputURL
 {
     NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
     NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
@@ -502,11 +515,22 @@
     
     CGSize size = CGSizeMake([props[(NSString *)kCGImagePropertyPixelWidth] intValue], [props[(NSString *)kCGImagePropertyPixelHeight] intValue]);
     
-    CGFloat aspect = horizntalFOV / verticalFOV;
+    if ((horizontalFOV > 0) && (verticalFOV <= 0))
+    {
+        CGFloat widthAspect = size.width/size.height;
+        verticalFOV = horizontalFOV / widthAspect;
+    }
+    else if ((verticalFOV > 0) && (horizontalFOV <= 0))
+    {
+        CGFloat widthAspect = size.width/size.height;
+        horizontalFOV = verticalFOV * widthAspect;
+    }
+    
+    CGFloat aspect = horizontalFOV / verticalFOV;
     CGFloat delta = aspect/(size.width/size.height);
     CGSize renderSize = CGSizeMake(size.width * delta, size.height);
     
-    NSDictionary *panoParams = [self panoParams:horizntalFOV vFov:verticalFOV withSize:renderSize];
+    NSDictionary *panoParams = [self panoParams:horizontalFOV vFov:verticalFOV withSize:renderSize];
     NSDictionary *allParams = [props mutableCopy];
     [allParams setValuesForKeysWithDictionary:panoParams];
     

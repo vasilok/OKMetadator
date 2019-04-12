@@ -70,7 +70,8 @@ NS_ASSUME_NONNULL_BEGIN
                completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
- * @brief Make panorama image with image at URL. Async
+ * @brief Make panorama image with image at URL. Async.
+ * If one from horizontalFOV and verticalFOV is 0, other will be calculated, based on the image size.
  * @param horizntalFOV indicates horizontal field of view, in grad
  * @param verticalFOV indicates vertical field of view, in grad
  * @param url indicates original url of image file
@@ -85,6 +86,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 /*!
  * @brief Make panorama image with image at URL. Async
+ * If one from horizontalFOV and verticalFOV is 0, other will be calculated, based on the image size.
  * @param image indicates original image
  * @param horizntalFOV indicates horizontal field of view, in grad
  * @param verticalFOV indicates vertical field of view, in grad
