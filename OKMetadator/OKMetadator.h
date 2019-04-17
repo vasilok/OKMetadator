@@ -6,8 +6,8 @@
 //  Copyright © 2019 Vasil_OK. All rights reserved.
 //
 
-#ifndef VSMetadator_h
-#define VSMetadator_h
+#ifndef OKMetadator_h
+#define OKMetadator_h
 
 #import <Foundation/Foundation.h>
 
@@ -103,4 +103,4 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define CFS(stringref) CFBridgingRelease(stringref)
 
-#endif /* VSMetadator_h */
+#endif /* OKMetadator_h */
