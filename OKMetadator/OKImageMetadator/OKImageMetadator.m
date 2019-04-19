@@ -23,7 +23,7 @@
         os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
         return nil;
     }
-        
+    
     CGImageMetadataRef metadata = CGImageSourceCopyMetadataAtIndex(source, 0, NULL);
     CFRelease(source);
     
@@ -539,11 +539,11 @@
 - (NSObject<NSCopying> *)valueFromTag:(CGImageMetadataTagRef)tag
 {
     CGImageMetadataType type = CGImageMetadataTagGetType(tag);
-
+    
     switch (type) {
         case kCGImageMetadataTypeString:
             return CFBridgingRelease(CGImageMetadataTagCopyValue(tag));
-
+            
         case kCGImageMetadataTypeArrayUnordered:
         case kCGImageMetadataTypeArrayOrdered:
         case kCGImageMetadataTypeAlternateArray:
@@ -570,7 +570,7 @@
             
             return [resultArray copy];
         }
-
+            
         case kCGImageMetadataTypeStructure:
         {
             NSDictionary *valueDict = CFBridgingRelease(CGImageMetadataTagCopyValue(tag));
@@ -607,7 +607,7 @@
                     
                     if ([dKey isEqualToString:key])
                     {
-                        [resultDict setObject:value forKey:key]; 
+                        [resultDict setObject:value forKey:key];
                     }
                     else
                     {
@@ -617,7 +617,7 @@
             }
             return resultDict;
         }
-        
+            
         default:
             break;
     }
@@ -629,6 +629,24 @@
 #pragma mark RESIZING
 
 #pragma mark Image
+
+- (nonnull UIImage *)resizeAspect:(CGFloat)newAspect
+                            image:(nonnull UIImage *)image
+{
+    NSAssert(image, @"Unexpected NIL!");
+    
+    CGFloat aspect = image.size.width/image.size.height;
+    
+    if (aspect != newAspect)
+    {
+        CGFloat delta = newAspect/aspect;
+        CGSize renderSize = CGSizeMake(image.size.width * delta, image.size.height);
+        
+        return [self resize:renderSize image:image];
+    }
+    
+    return image;
+}
 
 - (BOOL)resizeAspect:(CGFloat)aspect
                image:(nonnull UIImage *)image
@@ -931,7 +949,7 @@ withProperties:(nullable NSDictionary *)props
     [mutProps setObject:@(0) forKey:@"Orientation"];
     [mutProps setObject:@(width) forKey:(NSString*)kCGImagePropertyPixelWidth];
     [mutProps setObject:@(height) forKey:(NSString*)kCGImagePropertyPixelHeight];
-
+    
     return [self processImage:image properties:mutProps meta:nil aux:nil atURL:url];
 }
 
@@ -1000,27 +1018,12 @@ withProperties:(nullable NSDictionary *)props
     static NSDateFormatter *dateFormatter = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^
-    {
-        dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"yyyy:MM:dd HH:mm:ss"];
-    });
+                  {
+                      dateFormatter = [[NSDateFormatter alloc] init];
+                      [dateFormatter setDateFormat:@"yyyy:MM:dd HH:mm:ss"];
+                  });
     
     return [dateFormatter stringFromDate:localDate];
-}
-
-- (UIImage *)resizeAspect:(CGFloat)newAspect image:(UIImage *)image
-{
-    CGFloat aspect = image.size.width/image.size.height;
-    
-    if (aspect != newAspect)
-    {
-        CGFloat delta = newAspect/aspect;
-        CGSize renderSize = CGSizeMake(image.size.width * delta, image.size.height);
-        
-        return [self resize:renderSize image:image];
-    }
-    
-    return image;
 }
 
 - (UIImage *)resize:(CGSize)size image:(UIImage *)image

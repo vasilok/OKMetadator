@@ -33,6 +33,8 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define GoogleNamespace @"http://ns.google.com/photos/1.0/image/"
 #define AppleNamespace  @"http://ns.apple.com/ImageIO/1.0/"
 
+#define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
+
 // Available Image prefixes
 #define GPano   @"GPano"
 #define GImage  @"GImage"

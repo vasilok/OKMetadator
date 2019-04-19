@@ -133,6 +133,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 
 /*!
+ * @brief resize image
+ * @param aspect indicates desired image aspect width/height
+ * @param image indicates the image
+ * @return result image
+ */
+- (nonnull UIImage *)resizeAspect:(CGFloat)aspect
+                            image:(nonnull UIImage *)image;
+
+/*!
  * @brief resize image and update existing metadata
  * @param aspect indicates desired image aspect width/height
  * @param image indicates the image
