@@ -245,14 +245,14 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
-    updParams[CaptureSoftware] = [self captureSoftware];
-    updParams[ProjectionType] = equirectangular;
-    updParams[FullPanoWidthPixels] = @(size.width);
-    updParams[FullPanoHeightPixels] = @(size.height);
-    updParams[CroppedAreaImageWidthPixels] = @(size.width);
-    updParams[CroppedAreaImageHeightPixels] = @(size.height);
-    updParams[CroppedAreaLeftPixels] = @(0);
-    updParams[CroppedAreaTopPixels] = @(0);
+    updParams[PP(GPano,CaptureSoftware)] = [self captureSoftware];
+    updParams[PP(GPano,ProjectionType)] = equirectangular;
+    updParams[PP(GPano,FullPanoWidthPixels)] = @(size.width);
+    updParams[PP(GPano,FullPanoHeightPixels)] = @(size.height);
+    updParams[PP(GPano,CroppedAreaImageWidthPixels)] = @(size.width);
+    updParams[PP(GPano,CroppedAreaImageHeightPixels)] = @(size.height);
+    updParams[PP(GPano,CroppedAreaLeftPixels)] = @(0);
+    updParams[PP(GPano,CroppedAreaTopPixels)] = @(0);
     
     return [updParams copy];
 }
@@ -261,14 +261,14 @@
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
     
-    updParams[CaptureSoftware] = [self captureSoftware];
-    updParams[ProjectionType] = equirectangular;
-    updParams[FullPanoWidthPixels] = @(size.width * 2);
-    updParams[FullPanoHeightPixels] = @(size.height);
-    updParams[CroppedAreaImageWidthPixels] = @(size.width);
-    updParams[CroppedAreaImageHeightPixels] = @(size.height);
-    updParams[CroppedAreaLeftPixels] = @(size.width/2);
-    updParams[CroppedAreaTopPixels] = @(0);
+    updParams[PP(GPano,CaptureSoftware)] = [self captureSoftware];
+    updParams[PP(GPano,ProjectionType)] = equirectangular;
+    updParams[PP(GPano,FullPanoWidthPixels)] = @(size.width * 2);
+    updParams[PP(GPano,FullPanoHeightPixels)] = @(size.height);
+    updParams[PP(GPano,CroppedAreaImageWidthPixels)] = @(size.width);
+    updParams[PP(GPano,CroppedAreaImageHeightPixels)] = @(size.height);
+    updParams[PP(GPano,CroppedAreaLeftPixels)] = @(size.width/2);
+    updParams[PP(GPano,CroppedAreaTopPixels)] = @(0);
     
     return [updParams copy];
 }
@@ -279,19 +279,19 @@
     
     CGFloat fullWidth = size.width * 360.0/hFov;
     CGFloat fullHeight = size.height * 180.0/vFov;
-    updParams[CaptureSoftware] = [self captureSoftware];
-    updParams[ProjectionType] = equirectangular;
-    updParams[InitialViewHeadingDegrees] = @(0);
-    updParams[InitialViewPitchDegrees] = @(0);
-    updParams[InitialViewRollDegrees] = @(0);
-    updParams[InitialHorizontalFOVDegrees] = @(75.0);
-    updParams[PoseHeadingDegrees] = @(hFov);
-    updParams[FullPanoWidthPixels] = @(fullWidth);
-    updParams[FullPanoHeightPixels] = @(fullHeight);
-    updParams[CroppedAreaImageWidthPixels] = @(size.width);
-    updParams[CroppedAreaImageHeightPixels] = @(size.height);
-    updParams[CroppedAreaLeftPixels] = @(fullWidth/2 - size.width/2);
-    updParams[CroppedAreaTopPixels] = @(fullHeight/2 - size.height/2);
+    updParams[PP(GPano,CaptureSoftware)] = [self captureSoftware];
+    updParams[PP(GPano,ProjectionType)] = equirectangular;
+    updParams[PP(GPano,InitialViewHeadingDegrees)] = @(0);
+    updParams[PP(GPano,InitialViewPitchDegrees)] = @(0);
+    updParams[PP(GPano,InitialViewRollDegrees)] = @(0);
+    updParams[PP(GPano,InitialHorizontalFOVDegrees)] = @(75.0);
+    updParams[PP(GPano,PoseHeadingDegrees)] = @(hFov);
+    updParams[PP(GPano,FullPanoWidthPixels)] = @(fullWidth);
+    updParams[PP(GPano,FullPanoHeightPixels)] = @(fullHeight);
+    updParams[PP(GPano,CroppedAreaImageWidthPixels)] = @(size.width);
+    updParams[PP(GPano,CroppedAreaImageHeightPixels)] = @(size.height);
+    updParams[PP(GPano,CroppedAreaLeftPixels)] = @(fullWidth/2 - size.width/2);
+    updParams[PP(GPano,CroppedAreaTopPixels)] = @(fullHeight/2 - size.height/2);
     
     return [updParams copy];
 }
@@ -311,7 +311,7 @@
     return @"vr.jpg";
 }
 
-- (BOOL)verifyParam:(id)param forKey:(NSString *)key
+- (BOOL)verifyParam:(id)param forSimpleKey:(NSString *)key
 {
     if ([key isEqualToString:CaptureSoftware]) {
         return [param isKindOfClass:[NSString class]];
@@ -886,95 +886,95 @@
     
     NSNumber *width = params[PP(GPano,FullPanoWidthPixels)];
     if (width == nil) width = @(size.width);
-    [self setTagForPanoKey:FullPanoWidthPixels value:(__bridge CFTypeRef)(width) toMeta:meta];
+    [self setTagForSimplePanoKey:FullPanoWidthPixels value:(__bridge CFTypeRef)(width) toMeta:meta];
     
     NSNumber *height = params[PP(GPano,FullPanoHeightPixels)];
     if (height == nil) height = @(size.height);
-    [self setTagForPanoKey:FullPanoHeightPixels value:(__bridge CFTypeRef)(height) toMeta:meta];
+    [self setTagForSimplePanoKey:FullPanoHeightPixels value:(__bridge CFTypeRef)(height) toMeta:meta];
     
     NSNumber *cropWidth = params[PP(GPano,CroppedAreaImageWidthPixels)];
     if (cropWidth == nil) cropWidth = @(size.width);
-    [self setTagForPanoKey:CroppedAreaImageWidthPixels value:(__bridge CFTypeRef)(cropWidth) toMeta:meta];
+    [self setTagForSimplePanoKey:CroppedAreaImageWidthPixels value:(__bridge CFTypeRef)(cropWidth) toMeta:meta];
     
     NSNumber *cropHeight = params[PP(GPano,CroppedAreaImageHeightPixels)];
     if (cropHeight == nil) cropHeight = @(size.height);
-    [self setTagForPanoKey:CroppedAreaImageHeightPixels value:(__bridge CFTypeRef)(cropHeight) toMeta:meta];
+    [self setTagForSimplePanoKey:CroppedAreaImageHeightPixels value:(__bridge CFTypeRef)(cropHeight) toMeta:meta];
     
-    [self setTagForPanoKey:ProjectionType value:(__bridge CFTypeRef)(@"equirectangular") toMeta:meta];
+    [self setTagForSimplePanoKey:ProjectionType value:(__bridge CFTypeRef)(@"equirectangular") toMeta:meta];
     
-    [self setTagForPanoKey:UsePanoramaViewer value:@"True" toMeta:meta];
+    [self setTagForSimplePanoKey:UsePanoramaViewer value:@"True" toMeta:meta];
     
     NSNumber *heading = params[PP(GPano,PoseHeadingDegrees)];
-    if ((heading != nil) && [self verifyParam:heading forKey:PoseHeadingDegrees]) {
-        [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)(heading) toMeta:meta];
+    if ((heading != nil) && [self verifyParam:heading forSimpleKey:PoseHeadingDegrees]) {
+        [self setTagForSimplePanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)(heading) toMeta:meta];
     }
     else { // for Google maps!
-        [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)@"360" toMeta:meta];
+        [self setTagForSimplePanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)@"360" toMeta:meta];
     }
     
     NSNumber *pitch = params[PP(GPano,PosePitchDegrees)];
-    if ((pitch != nil) && [self verifyParam:heading forKey:PosePitchDegrees]) {
-        [self setTagForPanoKey:PosePitchDegrees value:(__bridge CFTypeRef)(pitch) toMeta:meta];
+    if ((pitch != nil) && [self verifyParam:heading forSimpleKey:PosePitchDegrees]) {
+        [self setTagForSimplePanoKey:PosePitchDegrees value:(__bridge CFTypeRef)(pitch) toMeta:meta];
     }
     
     NSNumber *roll = params[PP(GPano,PoseRollDegrees)];
-    if ((roll != nil) && [self verifyParam:heading forKey:PoseRollDegrees]){
-        [self setTagForPanoKey:PoseRollDegrees value:(__bridge CFTypeRef)(roll) toMeta:meta];
+    if ((roll != nil) && [self verifyParam:heading forSimpleKey:PoseRollDegrees]){
+        [self setTagForSimplePanoKey:PoseRollDegrees value:(__bridge CFTypeRef)(roll) toMeta:meta];
     }
     
     NSNumber *initHeading = params[PP(GPano,InitialViewHeadingDegrees)];
     if (initHeading != nil) {
-        [self setTagForPanoKey:InitialViewHeadingDegrees value:(__bridge CFTypeRef)(initHeading) toMeta:meta];
+        [self setTagForSimplePanoKey:InitialViewHeadingDegrees value:(__bridge CFTypeRef)(initHeading) toMeta:meta];
     }
     
     NSNumber *initPitch = params[PP(GPano,InitialViewPitchDegrees)];
     if (initPitch != nil) {
-        [self setTagForPanoKey:InitialViewPitchDegrees value:(__bridge CFTypeRef)(initPitch) toMeta:meta];
+        [self setTagForSimplePanoKey:InitialViewPitchDegrees value:(__bridge CFTypeRef)(initPitch) toMeta:meta];
     }
     
     NSNumber *initRoll = params[PP(GPano,InitialViewRollDegrees)];
     if (initRoll != nil) {
-        [self setTagForPanoKey:InitialViewRollDegrees value:(__bridge CFTypeRef)(initRoll) toMeta:meta];
+        [self setTagForSimplePanoKey:InitialViewRollDegrees value:(__bridge CFTypeRef)(initRoll) toMeta:meta];
     }
     
     NSNumber *hfov = params[PP(GPano,InitialHorizontalFOVDegrees)];
     if (hfov != nil) {
-        [self setTagForPanoKey:InitialHorizontalFOVDegrees value:(__bridge CFTypeRef)(hfov) toMeta:meta];
+        [self setTagForSimplePanoKey:InitialHorizontalFOVDegrees value:(__bridge CFTypeRef)(hfov) toMeta:meta];
     }
     
     NSNumber *vfov = params[PP(GPano,InitialVerticalFOVDegrees)];
     if (vfov != nil) {
-        [self setTagForPanoKey:InitialVerticalFOVDegrees value:(__bridge CFTypeRef)(vfov) toMeta:meta];
+        [self setTagForSimplePanoKey:InitialVerticalFOVDegrees value:(__bridge CFTypeRef)(vfov) toMeta:meta];
     }
     
     NSNumber *cropLeft = params[PP(GPano,CroppedAreaLeftPixels)];
     if (cropLeft != nil) {
-        [self setTagForPanoKey:CroppedAreaLeftPixels value:(__bridge CFTypeRef)(cropLeft) toMeta:meta];
+        [self setTagForSimplePanoKey:CroppedAreaLeftPixels value:(__bridge CFTypeRef)(cropLeft) toMeta:meta];
     }
     
     NSNumber *cropTop = params[PP(GPano,CroppedAreaTopPixels)];
     if (cropTop != nil) {
-        [self setTagForPanoKey:CroppedAreaTopPixels value:(__bridge CFTypeRef)(cropTop) toMeta:meta];
+        [self setTagForSimplePanoKey:CroppedAreaTopPixels value:(__bridge CFTypeRef)(cropTop) toMeta:meta];
     }
     
     NSString *firstPhotoDate = params[PP(GPano,FirstPhotoDate)];
     if (firstPhotoDate != nil) {
-        [self setTagForPanoKey:FirstPhotoDate value:(__bridge CFTypeRef)(firstPhotoDate) toMeta:meta];
+        [self setTagForSimplePanoKey:FirstPhotoDate value:(__bridge CFTypeRef)(firstPhotoDate) toMeta:meta];
     }
     
     NSString *lastPhotoDate = params[PP(GPano,LastPhotoDate)];
     if (lastPhotoDate != nil) {
-        [self setTagForPanoKey:LastPhotoDate value:(__bridge CFTypeRef)(lastPhotoDate) toMeta:meta];
+        [self setTagForSimplePanoKey:LastPhotoDate value:(__bridge CFTypeRef)(lastPhotoDate) toMeta:meta];
     }
     
     NSNumber *photosCount = params[PP(GPano,SourcePhotosCount)];
     if (photosCount != nil) {
-        [self setTagForPanoKey:SourcePhotosCount value:(__bridge CFTypeRef)(photosCount) toMeta:meta];
+        [self setTagForSimplePanoKey:SourcePhotosCount value:(__bridge CFTypeRef)(photosCount) toMeta:meta];
     }
     
     NSNumber *lock = params[PP(GPano,ExposureLockUsed)];
     if (lock != nil) {
-        [self setTagForPanoKey:ExposureLockUsed value:(__bridge CFTypeRef)(lock) toMeta:meta];
+        [self setTagForSimplePanoKey:ExposureLockUsed value:(__bridge CFTypeRef)(lock) toMeta:meta];
     }
     
     return YES;
@@ -983,6 +983,14 @@
 - (BOOL)setTagForPanoKey:(const NSString *)key
                    value:(CFTypeRef)value
                   toMeta:(CGMutableImageMetadataRef)meta
+{
+    NSString *simpleKey = [[key componentsSeparatedByString:@":"] lastObject];
+    return [self setTagForSimplePanoKey:simpleKey value:value toMeta:meta];
+}
+
+- (BOOL)setTagForSimplePanoKey:(const NSString *)key
+                         value:(CFTypeRef)value
+                        toMeta:(CGMutableImageMetadataRef)meta
 {
     CGImageMetadataTagRef tag =
     CGImageMetadataTagCreate((CFStringRef)PanoNamespace,
