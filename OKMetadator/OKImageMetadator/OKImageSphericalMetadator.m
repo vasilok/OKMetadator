@@ -723,7 +723,7 @@
                    withMetaParam:(OKMetaParam *)param
                          copyOld:(BOOL)copyOld
 {
-    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
     if (source == NULL)
     {
         os_log_error(OS_LOG_DEFAULT, "Could not create source from image");
@@ -1022,7 +1022,7 @@
     BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(GImage, Mime), mimeTag);
     CFRelease(mimeTag);
     
-    if (params[Data])
+    if (params[PP(GImage, Data)])
     {
         CFStringRef str = (__bridge CFStringRef)params[Data];
         
