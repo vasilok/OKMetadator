@@ -102,6 +102,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define top_bottom @"top-bottom"
 
 #define PP(prefix, param) [NSString stringWithFormat:@"%@:%@", prefix, param]
+#define GP(param) [NSString stringWithFormat:@"GPano:%@", param]
 
 #define CFS(stringref) CFBridgingRelease(stringref)
 
