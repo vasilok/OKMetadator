@@ -307,6 +307,10 @@
                 }
                 CFRelease(tag);
             }
+            else
+            {
+                os_log_error(OS_LOG_DEFAULT, "Meta create tag failed with prefix:%@ name:%@ value:%@", prefix, name, param[path]);
+            }
         }
     }
     
@@ -315,7 +319,7 @@
 
 - (CGImageMetadataTagRef)tagFrom:(NSObject<NSCopying> *)value withName:(NSString *)name prefix:(NSString *)prefix namespace:(NSString *)namespace
 {
-    if ([value isKindOfClass:[NSString class]])
+    if (([value isKindOfClass:[NSString class]]) || ([value isKindOfClass:[NSNumber class]]))
     {
         return [self stringTagFrom:value withName:name prefix:prefix namespace:namespace];
     }
@@ -367,7 +371,7 @@
         
         NSObject<NSCopying> *arValue = [[objDict allValues] firstObject];
         
-        if ([arValue isKindOfClass:[NSString class]])
+        if (([arValue isKindOfClass:[NSString class]]) || ([arValue isKindOfClass:[NSNumber class]]))
         {
             [resArray addObject:arValue];
         }
@@ -398,7 +402,7 @@
         NSString *key = dicValue.allKeys[i];
         NSObject<NSCopying> *keyValue = dicValue[key];
         
-        if ([keyValue isKindOfClass:[NSString class]])
+        if (([keyValue isKindOfClass:[NSString class]]) || ([keyValue isKindOfClass:[NSNumber class]]))
         {
             [resValue setValue:keyValue forKey:key];
         }
@@ -555,7 +559,8 @@
             {
                 NSObject<NSCopying> *arValue = valueArray[i];
                 
-                if ([arValue isKindOfClass:[NSString class]]) {
+                if (([arValue isKindOfClass:[NSString class]]) || ([arValue isKindOfClass:[NSNumber class]]))
+                {
                     [resultArray addObject:arValue];
                 }
                 else
@@ -580,7 +585,7 @@
                 NSString *key = valueDict.allKeys[i];
                 NSObject<NSCopying> *keyValue = valueDict[key];
                 
-                if ([keyValue isKindOfClass:[NSString class]])
+                if (([keyValue isKindOfClass:[NSString class]]) || ([keyValue isKindOfClass:[NSNumber class]]))
                 {
                     [resultDict setObject:keyValue forKey:key];
                 }
