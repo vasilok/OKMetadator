@@ -30,7 +30,9 @@
 
 #define CLOSED 60
 #define OPEN 100
-#define SHOW_PROPERTIES NO
+#define HIDE 20
+#define SHOW_PROPERTIES YES
+#define ONLY_READER YES
 
 @implementation DetailViewController
 
@@ -84,7 +86,8 @@
     _videoMetadator = [OKVideoSphericalMetadator new];
     
     _meta = [_videoMetadator metaParamsFromVideoAtURL:_URL];
-    _params = [_videoMetadator videoPropertiesFromVideoAtURL:_URL];
+    _params = @{ @"Video" : [_videoMetadator videoPropertiesFromVideoAtURL:_URL],
+                 @"Audio" : [_videoMetadator audioPropertiesFromVideoAtURL:_URL] };
     
     self.title = [_URL lastPathComponent];
     
@@ -104,9 +107,14 @@
         _metaView.frame = _metaView.superview.bounds;
     }
     
-    _topMetasConstraint.constant = CLOSED;
+    _topMetasConstraint.constant = ONLY_READER ? HIDE : CLOSED;
     
     _vrBtn.hidden = _videoMetadator != nil;
+    
+    OKMetadator *m = _imageMetadator ?  _imageMetadator : _videoMetadator;
+    CGFloat fileSize = [[m filePropertiesFromURL:_URL][FileSize] floatValue];
+    
+    [[self navigationItem] setRightBarButtonItem:[[UIBarButtonItem alloc] initWithTitle:[NSString stringWithFormat:@"%.2f Mb", fileSize] style:UIBarButtonItemStylePlain target:nil action:NULL]];
 }
 
 - (IBAction)make180:(id)sender

@@ -78,7 +78,31 @@
 {
     NSAssert(asset, @"Unexpected NIL!");
     
-    return @{};
+    NSMutableDictionary *metaDict = [NSMutableDictionary new];
+    
+    NSArray *audioTracks = [asset tracksWithMediaType:AVMediaTypeAudio];
+    AVAssetTrack *audioTrack = audioTracks.firstObject;
+    
+    [metaDict setObject:@([audioTrack estimatedDataRate] / 1024) forKey:DateRate];
+    
+    CMAudioFormatDescriptionRef formatDescription = NULL;
+    NSArray *formatDescriptions = [audioTrack formatDescriptions];
+    if ([formatDescriptions count] > 0)
+        formatDescription = (CMAudioFormatDescriptionRef)CFBridgingRetain([formatDescriptions firstObject]);
+    
+    const AudioStreamBasicDescription *audioDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
+    
+    [metaDict setObject:@(audioDescription->mSampleRate / 1024) forKey:SampleRate];
+    
+    [metaDict setObject:@(audioDescription->mChannelsPerFrame) forKey:Channels];
+    
+    [metaDict setObject:@(audioDescription->mBitsPerChannel) forKey:BitsPerChannel];
+    
+    [metaDict setObject:@(audioDescription->mFramesPerPacket) forKey:FramesPerPacket];
+    
+    [metaDict setObject:@(audioDescription->mBytesPerFrame) forKey:BytesPerFrame];
+    
+    return [metaDict copy];
 }
 
 - (nonnull NSDictionary *)videoPropertiesFromVideoAtURL:(nonnull NSURL *)url
@@ -92,7 +116,27 @@
 {
     NSAssert(asset, @"Unexpected NIL!");
     
-    return @{};
+    NSMutableDictionary *metaDict = [NSMutableDictionary new];
+    
+    NSArray *videoTracks = [asset tracksWithMediaType:AVMediaTypeVideo];
+    AVAssetTrack *videoTrack = videoTracks.firstObject;
+    
+    CMFormatDescriptionRef formatDescription = NULL;
+    NSArray *formatDescriptions = [videoTrack formatDescriptions];
+    if ([formatDescriptions count] > 0)
+        formatDescription = (CMFormatDescriptionRef)CFBridgingRetain([formatDescriptions firstObject]);
+    
+    [metaDict setObject:@([videoTrack naturalSize]) forKey:Size];
+    
+    [metaDict setObject:@([videoTrack nominalFrameRate]) forKey:FrameRate];
+    
+    CGFloat bps = [videoTrack estimatedDataRate] / 1024;
+    [metaDict setObject:@(bps) forKey:DateRate];
+    
+    float time = CMTimeGetSeconds(videoTrack.timeRange.duration);
+    [metaDict setObject:@(time) forKey:Duration];
+    
+    return [metaDict copy];
 }
 
 - (BOOL)writeVideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams toURL:(nonnull NSURL *)toUrl completion:(OKSphereMetaInjectorCompletion)completion

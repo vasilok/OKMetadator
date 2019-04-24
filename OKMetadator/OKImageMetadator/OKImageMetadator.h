@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  * @brief Doing with image properties and metadata
  */
-@interface OKImageMetadator : NSObject
+@interface OKImageMetadator : OKMetadator
 
 /*!
  * @brief extract metadata of image at URL.

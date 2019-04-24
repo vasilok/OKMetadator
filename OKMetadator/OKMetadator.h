@@ -106,4 +106,33 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define CFS(stringref) CFBridgingRelease(stringref)
 
+
+// File Properties
+#define FileSize NSURLFileSizeKey  // Mb
+
+// Video Properties
+#define Duration  @"Duration"   // sec
+#define DateRate  @"DateRate"   // kbps
+#define FrameRate @"FrameRate"  // frames/sec
+#define Size      @"Size"       // CGSize in pixels
+
+// Audio Properties
+#define SampleRate      @"SampleRate" // kHz
+#define Channels        @"Channels"
+#define BytesPerFrame   @"BytesPerFrame"
+#define FramesPerPacket @"FramesPerPacket"
+#define BitsPerChannel  @"BitsPerChannel"
+#define DateRate        @"DateRate"   // kbps
+
+@interface OKMetadator : NSObject
+
+/*!
+ * @brief extract basic file system properties
+ * @param url indicates target file URL
+ * @return NSDictionary with obvious format
+ */
+- (nonnull NSDictionary *)filePropertiesFromURL:(nonnull NSURL *)url;
+
+@end
+
 #endif /* OKMetadator_h */

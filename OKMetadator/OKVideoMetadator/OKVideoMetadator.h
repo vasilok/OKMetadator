@@ -14,7 +14,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface OKVideoMetadator : NSObject
+@interface OKVideoMetadator : OKMetadator
 
 /*!
  * @brief Callback queue. Main by default

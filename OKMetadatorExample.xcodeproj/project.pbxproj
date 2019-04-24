@@ -27,6 +27,7 @@
 		04097ABE222FC7CF0048416C /* mxml-entity.c in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAB222FC7CF0048416C /* mxml-entity.c */; };
 		04097ABF222FC7CF0048416C /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAD222FC7CF0048416C /* parser.cpp */; };
 		04097AC0222FC7CF0048416C /* metadata_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAE222FC7CF0048416C /* metadata_utils.cpp */; };
+		0469D7722270A5E10032BBA5 /* OKMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0469D7712270A5E10032BBA5 /* OKMetadator.m */; };
 		0487D5E72228271100B63C66 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E62228271100B63C66 /* AppDelegate.m */; };
 		0487D5EA2228271100B63C66 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E92228271100B63C66 /* ViewController.m */; };
 		0487D5ED2228271100B63C66 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0487D5EB2228271100B63C66 /* Main.storyboard */; };
@@ -73,6 +74,7 @@
 		04097AAC222FC7CF0048416C /* portable_endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = portable_endian.h; sourceTree = "<group>"; };
 		04097AAD222FC7CF0048416C /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
 		04097AAE222FC7CF0048416C /* metadata_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = metadata_utils.cpp; sourceTree = "<group>"; };
+		0469D7712270A5E10032BBA5 /* OKMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKMetadator.m; sourceTree = "<group>"; };
 		0487D5E22228271100B63C66 /* OKMeta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OKMeta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0487D5E52228271100B63C66 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		0487D5E62228271100B63C66 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -221,6 +223,7 @@
 			isa = PBXGroup;
 			children = (
 				0487D5FE2228278500B63C66 /* OKMetadator.h */,
+				0469D7712270A5E10032BBA5 /* OKMetadator.m */,
 				04097A88222FC4D40048416C /* OKVideoMetadator */,
 				04097A87222FC4590048416C /* OKImageMetadator */,
 			);
@@ -316,6 +319,7 @@
 				0487D5E72228271100B63C66 /* AppDelegate.m in Sources */,
 				04097A8B222FC4F90048416C /* OKVideoMetadator.m in Sources */,
 				04097A8E222FC7920048416C /* OKVideoSphericalMetadator.mm in Sources */,
+				0469D7722270A5E10032BBA5 /* OKMetadator.m in Sources */,
 				04097ABF222FC7CF0048416C /* parser.cpp in Sources */,
 				04097AB6222FC7CF0048416C /* mxml-set.c in Sources */,
 				04097AB8222FC7CF0048416C /* mxml-search.c in Sources */,
