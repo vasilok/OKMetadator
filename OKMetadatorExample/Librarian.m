@@ -96,6 +96,12 @@
          
          NSError *error;
          BOOL success = [[NSFileManager defaultManager] copyItemAtURL:imageURL toURL:url error:&error];
+         
+         if (!success && imageData)
+         {
+             success = [imageData writeToFile:url.path atomically:YES];
+         }
+         
          NSLog(@"Fetch from library - %d with error - %@", success, error);
          
          dispatch_async(dispatch_get_main_queue(), ^{
