@@ -166,7 +166,7 @@
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="TU7-Cy-PCh">
                                         <rect key="frame" x="0.0" y="0.0" width="335" height="150"/>
-                                        <color key="backgroundColor" red="0.95194437435871582" green="0.95194437435871582" blue="0.95194437435871582" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                        <color key="backgroundColor" red="0.20530781149864197" green="0.46923267841339111" blue="0.96475356817245483" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="150" id="Kel-6z-LRj"/>
                                         </constraints>

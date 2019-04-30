@@ -55,6 +55,21 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
+ * @brief make CIImage depth map from aux metadata
+ * @param url indicates image file URL
+ * @return CIImage
+ */
+- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief make UIImage depth map from aux metadata
+ * @param url indicates image file URL
+ * @return UIImage
+ */
+- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url;
+
+
+/*!
  * @brief extract properties of image at URL
  * @param url indicates image file URL
  * @return NSDictionary with obvious format

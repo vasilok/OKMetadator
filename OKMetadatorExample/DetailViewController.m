@@ -32,7 +32,7 @@
 #define OPEN 100
 #define HIDE 20
 #define SHOW_PROPERTIES YES
-#define ONLY_READER YES
+#define ONLY_READER NO
 
 @implementation DetailViewController
 
@@ -61,6 +61,11 @@
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
     
+    UIImage *depthImage = [_imageMetadator depthImageFromImageAtURL:_URL];
+    if (depthImage) {
+        _image = [self combine:_image with:depthImage];
+    }
+    
     CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
     NSLog(@"Metadata : \n %@", metadata);
     if (metadata) CFRelease(metadata);
@@ -68,6 +73,24 @@
     self.title = [_URL lastPathComponent];
     
     [self setup];
+}
+
+- (UIImage *)combine:(UIImage *)one with:(UIImage *)second
+{
+    CGSize size = CGSizeMake(one.size.width + second.size.width, fmaxf(one.size.height, second.size.height));
+    
+    UIGraphicsBeginImageContext(size);
+    
+    CGFloat yPos = (size.height - one.size.height) / 2;
+    [one drawInRect:CGRectMake(0, yPos, one.size.width, one.size.height)];
+    
+    yPos = (size.height - second.size.height) / 2;
+    [second drawInRect:CGRectMake(one.size.width, yPos, second.size.width, second.size.height)];
+    
+    UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return result;
 }
 
 - (void)setupWithVideoURL:(NSURL * _Nonnull)videoURL

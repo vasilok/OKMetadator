@@ -8,6 +8,8 @@
 
 #import "OKImageMetadator.h"
 #import <os/log.h>
+// for depth data
+#import <AVFoundation/AVFoundation.h>
 
 @implementation OKImageMetadator
 
@@ -81,6 +83,46 @@
     }
     
     return [dict copy];
+}
+
+- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return nil;
+    }
+    
+    NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
+    if (disparity) {
+        
+        NSError *error;
+        AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:disparity
+                                                                              error:&error];
+        
+        if (depthData == nil) {
+            os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source at URL: %@ with error %@", url, error);
+        }
+        
+        return [CIImage imageWithDepthData:depthData];
+    }
+    
+    return nil;
+}
+
+- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url
+{
+    CIImage *ciImage = [self depthCIImageFromImageAtURL:url];
+    if (ciImage)
+    {
+        CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
+        return [UIImage imageWithCGImage:cgImage];
+    }
+    
+    return nil;
 }
 
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
