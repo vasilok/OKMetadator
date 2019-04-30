@@ -569,9 +569,10 @@
     CGFloat delta = aspect/(size.width/size.height);
     CGSize renderSize = CGSizeMake(size.width * delta, size.height);
     
-    NSDictionary *panoParams = [self pano180ParamsWithSize:renderSize];
+    //NSDictionary *panoParams = [self pano180ParamsWithSize:renderSize];
     NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];
-    [allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
+    //[allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
+    [allParams removeObjectForKey:(NSString *)PanoNamespace];
     
     BOOL result = NO;
     if ([self resizeAspect:aspect image:leftImage withProperties:nil andWriteURL:tempLeftURL] &&
@@ -595,7 +596,7 @@
                 allParams[GoogleNamespace] = @{};
             }
             NSMutableDictionary *mutGoogleDict = [allParams[GoogleNamespace] mutableCopy];
-            [mutGoogleDict setValue:stringData forKey:Data];
+            [mutGoogleDict setValue:stringData forKey:PP(GImage, Data)];
             
             [allParams setValue:mutGoogleDict forKey:GoogleNamespace];
         }
@@ -1024,7 +1025,7 @@
     
     if (params[PP(GImage, Data)])
     {
-        CFStringRef str = (__bridge CFStringRef)params[Data];
+        CFStringRef str = (__bridge CFStringRef)params[PP(GImage, Data)];
         
         CGImageMetadataTagRef dataTag =
         CGImageMetadataTagCreate((CFStringRef)GoogleNamespace,
