@@ -10,7 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface OKImageGVRMetadator : OKImageMetadator
+@interface OKImageMetadator ( OKImageGVRMetadator )
 
 /*!
  * @abstract FABRICS METHODS FOR MAKING 180 VR SBS SPHERE IMAGES.
@@ -52,10 +52,39 @@ NS_ASSUME_NONNULL_BEGIN
                           far:(CGFloat)far
                     outputURL:(nonnull NSURL *)outputURL;
 
+
 - (nullable NSDictionary *)depthParamsWithDepthImage:(UIImage *)depthImage
                                                 near:(CGFloat)near
                                                  far:(CGFloat)far;
 
+
+/*!
+ * @brief make CIImage depth map from GDepth:Data
+ * @param url indicates image file URL
+ * @return CIImage
+ */
+- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief make UIImage depth map from GDepth:Data
+ * @param url indicates image file URL
+ * @return UIImage
+ */
+- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief make CIImage depth map from GImage:Data
+* @param url indicates image file URL
+* @return CIImage
+*/
+- (nullable CIImage *)dataCIImageFromImageAtURL:(nonnull NSURL *)url;
+
+/*!
+ * @brief make UIImage depth map from GImage:Data
+ * @param url indicates image file URL
+ * @return UIImage
+ */
+- (nullable UIImage *)dataImageFromImageAtURL:(nonnull NSURL *)url;
 
 @end
 

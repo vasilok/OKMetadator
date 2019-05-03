@@ -59,14 +59,14 @@ NS_ASSUME_NONNULL_BEGIN
  * @param url indicates image file URL
  * @return CIImage
  */
-- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url;
+- (nullable CIImage *)disparityCIImageFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief make UIImage depth map from aux metadata
  * @param url indicates image file URL
  * @return UIImage
  */
-- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url;
+- (nullable UIImage *)disparityImageFromImageAtURL:(nonnull NSURL *)url;
 
 
 /*!

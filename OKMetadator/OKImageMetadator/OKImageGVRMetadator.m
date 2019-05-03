@@ -10,7 +10,7 @@
 #import <os/log.h>
 #import "OKJpegParser.h"
 
-@implementation OKImageGVRMetadator
+@implementation OKImageMetadator ( OKImageGVRMetadator )
 
 - (BOOL)make180VRLeftImage:(nonnull UIImage *)leftImage
                 rightImage:(nonnull UIImage *)rightImage
@@ -90,18 +90,76 @@
 //    return metadata;
 //}
 
-- (NSData *)xmpFromImageAtURL:(NSURL *)url
+//- (NSData *)xmpFromImageAtURL:(NSURL *)url
+//{
+//    NSData *data = [super xmpFromImageAtURL:url];
+//    if (data == nil)
+//    {
+//        data = [[OKJpegParser new] xmpFromURL:url];
+//    }
+    
+//    NSData *data = [[OKJpegParser new] xmpFromURL:url];
+//
+//    return data;
+//}
+
+- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url
 {
-    NSData *data = [super xmpFromImageAtURL:url];
-    if (data == nil)
-    {
-        data = [[OKJpegParser new] xmpFromURL:url];
+    NSAssert(url, @"Unexpected NIL!");
+    
+    UIImage *image = [self depthImageFromImageAtURL:url];
+    
+    return [CIImage imageWithCGImage:image.CGImage];
+}
+
+- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    OKMetaParam *metaparam = [self metaParamsFromImageAtURL:url];
+    
+    if (metaparam[GDepthNamespace]) {
+        
+        return [self gImageFromString:metaparam[GDepthNamespace][DP(Data)]];
     }
     
-    return data;
+    return nil;
+}
+
+- (nullable CIImage *)dataCIImageFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    UIImage *image = [self depthImageFromImageAtURL:url];
+    
+    return [CIImage imageWithCGImage:image.CGImage];
+}
+
+- (nullable UIImage *)dataImageFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    OKMetaParam *metaparam = [self metaParamsFromImageAtURL:url];
+    
+    if (metaparam[GoogleNamespace]) {
+        
+        return [self gImageFromString:metaparam[GoogleNamespace][PP(GImage,Data)]];
+    }
+    
+    return nil;
 }
 
 #pragma mark Private
+
+- (UIImage *)gImageFromString:(NSString *)string
+{
+    if (string) {
+        NSData *imageData = [[NSData alloc] initWithBase64EncodedString:string options:NSDataBase64Encoding64CharacterLineLength];
+        return [UIImage imageWithData:imageData];
+    }
+    
+    return nil;
+}
 
 #warning TEMP IMPL : WAS COPIED FROM SPHERICAL METADATOR. DOESN'T WORK RIGHT CURRENTLY
 

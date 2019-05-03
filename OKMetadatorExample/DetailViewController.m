@@ -11,6 +11,7 @@
 #import "OKVideoSphericalMetadator.h"
 #import <AVFoundation/AVFoundation.h>
 #import "ImageViewController.h"
+#import "OKImageGVRMetadator.h"
 
 @interface DetailViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
@@ -19,10 +20,18 @@
 @property (weak, nonatomic) IBOutlet UITextField *hFOVField;
 @property (weak, nonatomic) IBOutlet UITextField *vFOVField;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
-@property (weak, nonatomic) IBOutlet NSLayoutConstraint *heightMetaViewConstraint;
+@property (weak, nonatomic) IBOutlet UIButton *propBtn;
+@property (weak, nonatomic) IBOutlet UIButton *metaBtn;
+@property (weak, nonatomic) IBOutlet UIButton *exBtn;
+@property (weak, nonatomic) IBOutlet UIView *exView;
+@property (weak, nonatomic) IBOutlet UIImageView *exImageView;
+@property (weak, nonatomic) IBOutlet UILabel *exKeyLabel;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
-@property(nonatomic) UIImage *depthImage;
+
+@property(nonatomic) UIImage *exImage;
+@property(nonatomic) NSString *exKey;
+
 @property(nonatomic) OKMetaParam *meta;
 @property(nonatomic) NSDictionary *params;
 @property(nonatomic) OKImageSphericalMetadator *imageMetadator;
@@ -32,7 +41,6 @@
 #define CLOSED 60
 #define OPEN 100
 #define HIDE 20
-#define SHOW_PROPERTIES YES
 #define ONLY_READER NO
 
 @implementation DetailViewController
@@ -61,10 +69,26 @@
     
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
-    _depthImage = [_imageMetadator depthImageFromImageAtURL:_URL];
+    
+    _exImage = [_imageMetadator disparityImageFromImageAtURL:_URL];
+    if (_exImage) {
+        _exKey = CFS(kCGImageAuxiliaryDataTypeDisparity);
+    }
+    else {
+        _exImage = [_imageMetadator depthImageFromImageAtURL:_URL];
+        if (_exImage) {
+            _exKey = PP(GDepth,Data);
+        }
+        else {
+            _exImage = [_imageMetadator dataImageFromImageAtURL:_URL];
+            if (_exImage) {
+                _exKey = PP(GImage,Data);
+            }
+        }
+    }
     
     CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
-    NSLog(@"Metadata : \n %@", metadata);
+    //NSLog(@"Metadata : \n %@", metadata);
     if (metadata) CFRelease(metadata);
     
     self.title = [_URL lastPathComponent];
@@ -99,15 +123,14 @@
 - (void)setup
 {
     _imageView.image = _image;
-        
+    
+    _exBtn.hidden = _exImage == nil;
+    _exView.hidden = _exImage == nil;
+    _exImageView.image = _exImage;
+    _exKeyLabel.text = _exKey;
+    
     [_metaView setText:[[self printMetaDictionary] description]];
     [_propView setText:[_params description]];
-    
-    if (SHOW_PROPERTIES == NO)
-    {
-        _heightMetaViewConstraint.active = NO;
-        _metaView.frame = _metaView.superview.bounds;
-    }
     
     _topMetasConstraint.constant = ONLY_READER ? HIDE : CLOSED;
     
@@ -276,6 +299,19 @@
         [ivc setupImage:((UIImageView *)(sender.view)).image];
         
         [self presentViewController:ivc animated:YES completion:NULL];
+    }
+}
+
+- (IBAction)changeView:(UIButton *)sender
+{
+    if (sender == _propBtn) {
+        [_propView.superview bringSubviewToFront:_propView];
+    }
+    else if (sender == _metaBtn) {
+        [_metaView.superview bringSubviewToFront:_metaView];
+    }
+    else if (sender == _exBtn) {
+        [_exView.superview bringSubviewToFront:_exView];
     }
 }
 

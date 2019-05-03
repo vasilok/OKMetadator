@@ -85,7 +85,7 @@
     return [dict copy];
 }
 
-- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url
+- (nullable CIImage *)disparityCIImageFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
     
@@ -113,9 +113,9 @@
     return nil;
 }
 
-- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url
+- (nullable UIImage *)disparityImageFromImageAtURL:(nonnull NSURL *)url
 {
-    CIImage *ciImage = [self depthCIImageFromImageAtURL:url];
+    CIImage *ciImage = [self disparityCIImageFromImageAtURL:url];
     if (ciImage)
     {
         CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
