@@ -20,7 +20,6 @@
 @property (weak, nonatomic) IBOutlet UITextField *vFOVField;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *heightMetaViewConstraint;
-@property (strong, nonatomic) UITapGestureRecognizer *imageTapGR;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 @property(nonatomic) UIImage *depthImage;
@@ -100,10 +99,7 @@
 - (void)setup
 {
     _imageView.image = _image;
-    
-    _imageTapGR = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showImage:)];
-     [_imageView addGestureRecognizer:_imageTapGR];
-    
+        
     [_metaView setText:[[self printMetaDictionary] description]];
     [_propView setText:[_params description]];
     
@@ -273,11 +269,11 @@
     }
 }
 
-- (void)showImage:(UITapGestureRecognizer *)sender
+- (IBAction)showImage:(UITapGestureRecognizer *)sender
 {
     if (_imageMetadator) {
         ImageViewController *ivc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"ImageViewController"];
-        [ivc setupImage:_image];
+        [ivc setupImage:((UIImageView *)(sender.view)).image];
         
         [self presentViewController:ivc animated:YES completion:NULL];
     }

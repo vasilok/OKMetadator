@@ -155,6 +155,9 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="150" id="Kel-6z-LRj"/>
                                         </constraints>
+                                        <connections>
+                                            <outletCollection property="gestureRecognizers" destination="DP7-Ye-Hxa" appends="YES" id="btG-ll-t4m"/>
+                                        </connections>
                                     </imageView>
                                     <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="yLW-0a-wsw">
                                         <rect key="frame" x="0.0" y="160" width="335" height="218.5"/>
@@ -211,6 +214,12 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tf6-Bg-7RH" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <tapGestureRecognizer id="DP7-Ye-Hxa">
+                    <connections>
+                        <action selector="showImage:" destination="4j4-EO-8oE" id="vUZ-Ha-VJq"/>
+                        <outlet property="delegate" destination="4j4-EO-8oE" id="VIl-1k-Gbw"/>
+                    </connections>
+                </tapGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="208.80000000000001" y="-45.42728635682159"/>
         </scene>
