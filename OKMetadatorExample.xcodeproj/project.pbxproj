@@ -38,6 +38,8 @@
 		0487D6022228278500B63C66 /* OKImageSphericalMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5FF2228278500B63C66 /* OKImageSphericalMetadator.m */; };
 		0487D607222833E900B63C66 /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D606222833E900B63C66 /* DetailViewController.m */; };
 		0487D60A2229327300B63C66 /* Librarian.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D6092229327300B63C66 /* Librarian.m */; };
+		048F3C1A227B2A51007EDCB9 /* OKImageGVRMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */; };
+		048F3C21227C2A51007EDCB9 /* OKJpegParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -94,6 +96,10 @@
 		0487D606222833E900B63C66 /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		0487D6082229327300B63C66 /* Librarian.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Librarian.h; sourceTree = "<group>"; };
 		0487D6092229327300B63C66 /* Librarian.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Librarian.m; sourceTree = "<group>"; };
+		048F3C18227B2A51007EDCB9 /* OKImageGVRMetadator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OKImageGVRMetadator.h; sourceTree = "<group>"; };
+		048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKImageGVRMetadator.m; sourceTree = "<group>"; };
+		048F3C1F227C2A51007EDCB9 /* OKJpegParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OKJpegParser.h; sourceTree = "<group>"; };
+		048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OKJpegParser.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +120,9 @@
 				0487D5FC2228278500B63C66 /* OKImageMetadator.m */,
 				0487D5FD2228278500B63C66 /* OKImageSphericalMetadator.h */,
 				0487D5FF2228278500B63C66 /* OKImageSphericalMetadator.m */,
+				048F3C18227B2A51007EDCB9 /* OKImageGVRMetadator.h */,
+				048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */,
+				048F3C1B227C2881007EDCB9 /* JpegParser */,
 			);
 			path = OKImageMetadator;
 			sourceTree = "<group>";
@@ -230,6 +239,15 @@
 			path = OKMetadator;
 			sourceTree = "<group>";
 		};
+		048F3C1B227C2881007EDCB9 /* JpegParser */ = {
+			isa = PBXGroup;
+			children = (
+				048F3C1F227C2A51007EDCB9 /* OKJpegParser.h */,
+				048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */,
+			);
+			path = JpegParser;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -305,9 +323,11 @@
 				04097AC0222FC7CF0048416C /* metadata_utils.cpp in Sources */,
 				0487D5EA2228271100B63C66 /* ViewController.m in Sources */,
 				04097ABB222FC7CF0048416C /* mxml-private.c in Sources */,
+				048F3C21227C2A51007EDCB9 /* OKJpegParser.mm in Sources */,
 				04097ABD222FC7CF0048416C /* mxml-attr.c in Sources */,
 				04097AAF222FC7CF0048416C /* box.cpp in Sources */,
 				04097ABE222FC7CF0048416C /* mxml-entity.c in Sources */,
+				048F3C1A227B2A51007EDCB9 /* OKImageGVRMetadator.m in Sources */,
 				04097AB5222FC7CF0048416C /* mxml-get.c in Sources */,
 				0487D6022228278500B63C66 /* OKImageSphericalMetadator.m in Sources */,
 				04097AB1222FC7CF0048416C /* mpeg4_container.cpp in Sources */,

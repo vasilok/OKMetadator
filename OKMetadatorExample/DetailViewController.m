@@ -22,6 +22,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *vrBtn;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
+@property(nonatomic) UIImage *depthImage;
 @property(nonatomic) OKMetaParam *meta;
 @property(nonatomic) NSDictionary *params;
 @property(nonatomic) OKImageSphericalMetadator *imageMetadator;
@@ -60,11 +61,7 @@
     
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
-    
-    UIImage *depthImage = [_imageMetadator depthImageFromImageAtURL:_URL];
-    if (depthImage) {
-        _image = [self combine:_image with:depthImage];
-    }
+    _depthImage = [_imageMetadator depthImageFromImageAtURL:_URL];
     
     CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
     NSLog(@"Metadata : \n %@", metadata);
@@ -73,24 +70,6 @@
     self.title = [_URL lastPathComponent];
     
     [self setup];
-}
-
-- (UIImage *)combine:(UIImage *)one with:(UIImage *)second
-{
-    CGSize size = CGSizeMake(one.size.width + second.size.width, fmaxf(one.size.height, second.size.height));
-    
-    UIGraphicsBeginImageContext(size);
-    
-    CGFloat yPos = (size.height - one.size.height) / 2;
-    [one drawInRect:CGRectMake(0, yPos, one.size.width, one.size.height)];
-    
-    yPos = (size.height - second.size.height) / 2;
-    [second drawInRect:CGRectMake(one.size.width, yPos, second.size.width, second.size.height)];
-    
-    UIImage *result = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    return result;
 }
 
 - (void)setupWithVideoURL:(NSURL * _Nonnull)videoURL
@@ -121,7 +100,7 @@
 {
     _imageView.image = _image;
     
-    [_metaView setText:[_meta description]];
+    [_metaView setText:[[self printMetaDictionary] description]];
     [_propView setText:[_params description]];
     
     if (SHOW_PROPERTIES == NO)
@@ -138,6 +117,35 @@
     CGFloat fileSize = [[m filePropertiesFromURL:_URL][FileSize] floatValue];
     
     [[self navigationItem] setRightBarButtonItem:[[UIBarButtonItem alloc] initWithTitle:[NSString stringWithFormat:@"%.2f Mb", fileSize] style:UIBarButtonItemStylePlain target:nil action:NULL]];
+}
+
+- (NSDictionary *)printMetaDictionary
+{
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithDictionary:_meta copyItems:YES];
+    
+    NSString *imageData = dict[GoogleNamespace] [PP(GImage,Data)];
+    
+    if (imageData) {
+        imageData = [NSString stringWithFormat:@"<...> length=%ld", imageData.length];
+        
+        NSMutableDictionary *googleDict = [dict[GoogleNamespace] mutableCopy];
+        googleDict[PP(GImage, Data)] = imageData;
+        
+        dict[GoogleNamespace] = googleDict;
+    }
+    
+    NSString *depthData = dict[GDepthNamespace] [DP(Data)];
+    
+    if (depthData) {
+        depthData = [NSString stringWithFormat:@"<...> length=%ld", depthData.length];
+        
+        NSMutableDictionary *googleDict = [dict[GDepthNamespace] mutableCopy];
+        googleDict[DP(Data)] = depthData;
+        
+        dict[GDepthNamespace] = googleDict;
+    }
+    
+    return [dict copy];
 }
 
 - (IBAction)make180:(id)sender
@@ -172,7 +180,7 @@
 {
     if (_imageMetadator) {
         NSURL *tempURL = [Librarian tempImageURLWithExtension:[_imageMetadator vrExtension]];
-        if ([_imageMetadator make180VRWithSBSImage:_image withMeta:_meta outputURL:tempURL] )
+        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 if (success) {

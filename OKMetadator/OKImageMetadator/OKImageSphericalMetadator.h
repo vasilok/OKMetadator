@@ -165,34 +165,6 @@ NS_ASSUME_NONNULL_BEGIN
             withMeta:(nullable OKMetaParam *)meta
            outputURL:(nonnull NSURL *)outputURL;
 
-/*!
- * @abstract FABRICS METHODS FOR MAKING 180 VR SBS SPHERE IMAGES.
- * https://developers.google.com/vr/reference/cardboard-camera-vr-photo-format
- */
-
-/*!
- * @brief Make VR 180 image with side by side layout. Sync
- * @param leftImage indicates the left eye image
- * @param rightImage indicates the right eye image
- * @param meta indicates the set of image meta params with @MetaFormat
- * @param outputURL indicates processed url of image file
- * @return result.
- */
-- (BOOL)make180VRLeftImage:(nonnull UIImage *)leftImage
-                rightImage:(nonnull UIImage *)rightImage
-                  withMeta:(nullable OKMetaParam *)meta
-                 outputURL:(nonnull NSURL *)outputURL;
-
-/*!
- * @brief Make VR 180 image with side by side layout. Sync
- * @param sbsImage indicates the 180 sbs image
- * @param meta indicates the set of image meta params with @MetaFormat
- * @param outputURL indicates processed url of image file
- * @return result.
- */
-- (BOOL)make180VRWithSBSImage:(nonnull UIImage *)sbsImage
-                     withMeta:(nullable OKMetaParam *)meta
-                    outputURL:(nonnull NSURL *)outputURL;
 
 /*!
  * @abstract GETTERS

@@ -219,28 +219,6 @@
     return [self processMake360:NO image:image withMeta:meta outputURL:outputURL];
 }
 
-- (BOOL)make180VRLeftImage:(nonnull UIImage *)leftImage
-                rightImage:(nonnull UIImage *)rightImage
-                  withMeta:(nullable OKMetaParam *)meta
-                 outputURL:(nonnull NSURL *)outputURL
-{
-    NSAssert(leftImage && rightImage && outputURL, @"Unexpected NIL!");
-    
-    return [self processMake180VRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
-}
-
-- (BOOL)make180VRWithSBSImage:(nonnull UIImage *)sbsImage
-                     withMeta:(nullable OKMetaParam *)meta
-                    outputURL:(nonnull NSURL *)outputURL
-{
-    NSAssert(sbsImage && outputURL, @"Unexpected NIL!");
-    
-    UIImage *leftImage = [self extractLeft:YES fromImage:sbsImage];
-    UIImage *rightImage = [self extractLeft:NO fromImage:sbsImage];
-    
-    return [self processMake180VRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
-}
-
 - (nonnull NSDictionary *)pano360ParamsWithSize:(CGSize)size
 {
     NSMutableDictionary *updParams = [NSMutableDictionary new];
@@ -547,68 +525,6 @@
     else
     {
         result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams copyOld:YES];
-    }
-    
-    return result;
-}
-
-- (BOOL)processMake180VRLeft:(UIImage *)leftImage
-                       right:(UIImage *)rightImage
-                    withMeta:(nullable OKMetaParam *)meta
-                   outputURL:(NSURL *)outputURL
-{
-    NSString *tempLeftName = [NSString stringWithFormat:@"TPML%ld", (long)CFAbsoluteTimeGetCurrent()];
-    NSURL *tempLeftURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempLeftName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
-    
-    NSString *tempRightName = [NSString stringWithFormat:@"TPMR%ld", (long)CFAbsoluteTimeGetCurrent()];
-    NSURL *tempRightURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempRightName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
-    
-    CGSize size = CGSizeMake(leftImage.size.width, leftImage.size.height);
-    
-    CGFloat aspect = [self pano180Aspect];
-    CGFloat delta = aspect/(size.width/size.height);
-    CGSize renderSize = CGSizeMake(size.width * delta, size.height);
-    
-    //NSDictionary *panoParams = [self pano180ParamsWithSize:renderSize];
-    NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];
-    //[allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
-    [allParams removeObjectForKey:(NSString *)PanoNamespace];
-    
-    BOOL result = NO;
-    if ([self resizeAspect:aspect image:leftImage withProperties:nil andWriteURL:tempLeftURL] &&
-        [self resizeAspect:aspect image:rightImage withProperties:nil andWriteURL:tempRightURL])
-    {
-        NSError *error;
-        NSData *rightImageData = [NSData dataWithContentsOfURL:tempRightURL options:0 error:&error];
-        UIImage *rightImage = [UIImage imageWithData:rightImageData];
-        
-        CIImage *ciimage = [CIImage imageWithCGImage:rightImage.CGImage];
-        CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:ciimage.extent];
-        UIImage *clearImage =  [UIImage imageWithCGImage:cgImage];
-        
-        NSData *clearImageData = UIImageJPEGRepresentation(clearImage, 1.0);
-        NSString *stringData = [clearImageData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
-        
-        if (stringData)
-        {
-            if (allParams[GoogleNamespace] == nil)
-            {
-                allParams[GoogleNamespace] = @{};
-            }
-            NSMutableDictionary *mutGoogleDict = [allParams[GoogleNamespace] mutableCopy];
-            [mutGoogleDict setValue:stringData forKey:PP(GImage, Data)];
-            
-            [allParams setValue:mutGoogleDict forKey:GoogleNamespace];
-        }
-        else
-        {
-            os_log_error(OS_LOG_DEFAULT, "Could not create right image data from URL: %@", tempRightURL);
-        }
-        
-        result = [self processInjectionForImageURL:tempLeftURL output:outputURL withMetaParam:allParams copyOld:YES];
-        
-        [[NSFileManager defaultManager] removeItemAtURL:tempLeftURL error:nil];
-        [[NSFileManager defaultManager] removeItemAtURL:tempRightURL error:nil];
     }
     
     return result;
@@ -1086,24 +1002,6 @@
     });
     
     return result;
-}
-
-- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage
-{
-    CIImage *ciimage = [CIImage imageWithCGImage:sbsImage.CGImage];
-    CGRect rect;
-    if (left) {
-        rect = CGRectMake(0, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
-    }
-    else {
-        rect = CGRectMake(ciimage.extent.size.width/2, 0, ciimage.extent.size.width/2, ciimage.extent.size.height);
-    }
-    
-    CGImageRef cgImage = [[CIContext context] createCGImage:ciimage fromRect:rect];
-    UIImage *image = [UIImage imageWithCGImage:cgImage];
-    CGImageRelease(cgImage);
-    
-    return image;
 }
 
 @end

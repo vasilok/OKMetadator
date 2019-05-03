@@ -32,7 +32,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define PanoNamespace   @"http://ns.google.com/photos/1.0/panorama/"
 #define GoogleNamespace @"http://ns.google.com/photos/1.0/image/"
 #define AppleNamespace  @"http://ns.apple.com/ImageIO/1.0/"
-
+#define GDepthNamespace  @"http://ns.google.com/photos/1.0/depthmap/"
 #define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
 
 // Available Image prefixes
@@ -40,6 +40,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define GImage  @"GImage"
 #define ImageIO @"iio"
 #define Data    @"Data"
+#define GDepth  @"GDepth"
 
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
@@ -60,6 +61,21 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define ExposureLockUsed             @"ExposureLockUsed"
 #define CaptureSoftware              @"CaptureSoftware"
 #define InitialCameraDolly           @"InitialCameraDolly"
+
+// Google Image Depth
+#define Format         @"Format"
+#define Near           @"Near"
+#define Far            @"Far"
+#define Units          @"Units"
+#define MeasureType    @"MeasureType"
+#define ConfidenceMime @"ConfidenceMime"
+#define Confidence     @"Confidence"
+#define Manufacturer   @"Manufacturer"
+#define Model          @"Model"
+#define Software       @"Software"
+#define ImageWidth     @"ImageWidth"
+#define ImageHeight    @"ImageHeight"
+
 
 // Common Spherical Keys
 #define FullPanoWidthPixels          @"FullPanoWidthPixels"
@@ -103,9 +119,15 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define PP(prefix, param) [NSString stringWithFormat:@"%@:%@", prefix, param]
 #define GP(param) [NSString stringWithFormat:@"%@:%@", @"GPano", param]
+#define DP(param) [NSString stringWithFormat:@"%@:%@", @"GDepth", param]
 
 #define CFS(stringref) CFBridgingRelease(stringref)
 
+// value for GDepth
+#define RangeInverse @"RangeInverse"
+#define RangeLinear  @"RangeLinear"
+#define mUnit        @"m" // meters
+#define mmUnit       @"mm" // millimeters
 
 // File Properties
 #define FileSize NSURLFileSizeKey  // Mb
