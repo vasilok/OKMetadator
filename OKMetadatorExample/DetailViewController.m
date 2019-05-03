@@ -10,6 +10,7 @@
 #import "OKImageSphericalMetadator.h"
 #import "OKVideoSphericalMetadator.h"
 #import <AVFoundation/AVFoundation.h>
+#import "ImageViewController.h"
 
 @interface DetailViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
@@ -19,7 +20,7 @@
 @property (weak, nonatomic) IBOutlet UITextField *vFOVField;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *topMetasConstraint;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *heightMetaViewConstraint;
-@property (weak, nonatomic) IBOutlet UIButton *vrBtn;
+@property (strong, nonatomic) UITapGestureRecognizer *imageTapGR;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 @property(nonatomic) UIImage *depthImage;
@@ -100,6 +101,9 @@
 {
     _imageView.image = _image;
     
+    _imageTapGR = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showImage:)];
+     [_imageView addGestureRecognizer:_imageTapGR];
+    
     [_metaView setText:[[self printMetaDictionary] description]];
     [_propView setText:[_params description]];
     
@@ -110,8 +114,6 @@
     }
     
     _topMetasConstraint.constant = ONLY_READER ? HIDE : CLOSED;
-    
-    _vrBtn.hidden = _videoMetadator != nil;
     
     OKMetadator *m = _imageMetadator ?  _imageMetadator : _videoMetadator;
     CGFloat fileSize = [[m filePropertiesFromURL:_URL][FileSize] floatValue];
@@ -268,6 +270,16 @@
                 }];
             }
         }];
+    }
+}
+
+- (void)showImage:(UITapGestureRecognizer *)sender
+{
+    if (_imageMetadator) {
+        ImageViewController *ivc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"ImageViewController"];
+        [ivc setupImage:_image];
+        
+        [self presentViewController:ivc animated:YES completion:NULL];
     }
 }
 

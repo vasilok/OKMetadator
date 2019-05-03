@@ -40,6 +40,7 @@
 		0487D60A2229327300B63C66 /* Librarian.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D6092229327300B63C66 /* Librarian.m */; };
 		048F3C1A227B2A51007EDCB9 /* OKImageGVRMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */; };
 		048F3C21227C2A51007EDCB9 /* OKJpegParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */; };
+		048F3C24227C47B1007EDCB9 /* ImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C23227C47B1007EDCB9 /* ImageViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -100,6 +101,8 @@
 		048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKImageGVRMetadator.m; sourceTree = "<group>"; };
 		048F3C1F227C2A51007EDCB9 /* OKJpegParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OKJpegParser.h; sourceTree = "<group>"; };
 		048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OKJpegParser.mm; sourceTree = "<group>"; };
+		048F3C22227C47B1007EDCB9 /* ImageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageViewController.h; sourceTree = "<group>"; };
+		048F3C23227C47B1007EDCB9 /* ImageViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -219,6 +222,8 @@
 				0487D5E92228271100B63C66 /* ViewController.m */,
 				0487D605222833E800B63C66 /* DetailViewController.h */,
 				0487D606222833E900B63C66 /* DetailViewController.m */,
+				048F3C22227C47B1007EDCB9 /* ImageViewController.h */,
+				048F3C23227C47B1007EDCB9 /* ImageViewController.m */,
 				0487D5EB2228271100B63C66 /* Main.storyboard */,
 				0487D5EE2228271200B63C66 /* Assets.xcassets */,
 				0487D5F02228271200B63C66 /* LaunchScreen.storyboard */,
@@ -345,6 +350,7 @@
 				04097AB8222FC7CF0048416C /* mxml-search.c in Sources */,
 				04097AB9222FC7CF0048416C /* mxml-node.c in Sources */,
 				0487D60A2229327300B63C66 /* Librarian.m in Sources */,
+				048F3C24227C47B1007EDCB9 /* ImageViewController.m in Sources */,
 				0487D607222833E900B63C66 /* DetailViewController.m in Sources */,
 				04097AB0222FC7CF0048416C /* sa3d.cpp in Sources */,
 				04097AB2222FC7CF0048416C /* container.cpp in Sources */,
