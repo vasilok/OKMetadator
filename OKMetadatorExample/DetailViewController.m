@@ -176,21 +176,6 @@
     }
 }
 
-- (IBAction)make180VRPhoto:(id)sender
-{
-    if (_imageMetadator) {
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_imageMetadator vrExtension]];
-        if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
-        {
-            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
-            }];
-        }
-    }
-}
-
 - (IBAction)make360:(id)sender
 {
     if (_imageMetadator) {
