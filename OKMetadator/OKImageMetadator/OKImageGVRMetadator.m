@@ -154,7 +154,7 @@
 - (UIImage *)gImageFromString:(NSString *)string
 {
     if (string) {
-        NSData *imageData = [[NSData alloc] initWithBase64EncodedString:string options:NSDataBase64Encoding64CharacterLineLength];
+        NSData *imageData = [[NSData alloc] initWithBase64EncodedString:string options:NSDataBase64DecodingIgnoreUnknownCharacters];
         return [UIImage imageWithData:imageData];
     }
     

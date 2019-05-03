@@ -15,6 +15,7 @@
 
 @interface DetailViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UIImageView *fb360ImageView;
 @property (weak, nonatomic) IBOutlet UITextView *metaView;
 @property (weak, nonatomic) IBOutlet UITextView *propView;
 @property (weak, nonatomic) IBOutlet UITextField *hFOVField;
@@ -136,6 +137,13 @@
     
     OKMetadator *m = _imageMetadator ?  _imageMetadator : _videoMetadator;
     CGFloat fileSize = [[m filePropertiesFromURL:_URL][FileSize] floatValue];
+    
+    if (_imageMetadator) {
+        _fb360ImageView.hidden = _meta[PanoNamespace] == nil;
+    }
+    else if (_videoMetadator) {
+        _fb360ImageView.hidden = _meta[SphericalVideo] == nil;
+    }
     
     [[self navigationItem] setRightBarButtonItem:[[UIBarButtonItem alloc] initWithTitle:[NSString stringWithFormat:@"%.2f Mb", fileSize] style:UIBarButtonItemStylePlain target:nil action:NULL]];
 }

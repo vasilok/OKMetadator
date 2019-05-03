@@ -148,18 +148,37 @@
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="6ry-iz-PC6">
                                 <rect key="frame" x="20" y="40" width="335" height="607"/>
                                 <subviews>
-                                    <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="TU7-Cy-PCh">
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nS1-sf-lFV">
                                         <rect key="frame" x="0.0" y="0.0" width="335" height="150"/>
-                                        <color key="backgroundColor" red="0.95194437440000002" green="0.95194437440000002" blue="0.95194437440000002" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                                        <gestureRecognizers/>
+                                        <subviews>
+                                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="TU7-Cy-PCh">
+                                                <rect key="frame" x="0.0" y="0.0" width="335" height="150"/>
+                                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <gestureRecognizers/>
+                                                <connections>
+                                                    <outletCollection property="gestureRecognizers" destination="DP7-Ye-Hxa" appends="YES" id="btG-ll-t4m"/>
+                                                </connections>
+                                            </imageView>
+                                            <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="fb360" translatesAutoresizingMaskIntoConstraints="NO" id="dgu-5B-09f">
+                                                <rect key="frame" x="294" y="109" width="41" height="41"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="41" id="fBj-d1-fzp"/>
+                                                    <constraint firstAttribute="width" constant="41" id="qWZ-hG-nVl"/>
+                                                </constraints>
+                                            </imageView>
+                                        </subviews>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="150" id="Kel-6z-LRj"/>
+                                            <constraint firstAttribute="trailing" secondItem="dgu-5B-09f" secondAttribute="trailing" id="1h5-VJ-0Yw"/>
+                                            <constraint firstAttribute="bottom" secondItem="dgu-5B-09f" secondAttribute="bottom" id="4xk-AE-Ulq"/>
+                                            <constraint firstAttribute="trailing" secondItem="TU7-Cy-PCh" secondAttribute="trailing" id="Atk-Ww-biz"/>
+                                            <constraint firstItem="TU7-Cy-PCh" firstAttribute="top" secondItem="nS1-sf-lFV" secondAttribute="top" id="K6s-vP-Nhd"/>
+                                            <constraint firstAttribute="height" constant="150" id="dFY-r9-bT7"/>
+                                            <constraint firstItem="TU7-Cy-PCh" firstAttribute="leading" secondItem="nS1-sf-lFV" secondAttribute="leading" id="fJS-0f-VcX"/>
+                                            <constraint firstAttribute="bottom" secondItem="TU7-Cy-PCh" secondAttribute="bottom" id="fwH-ux-SsA"/>
                                         </constraints>
-                                        <connections>
-                                            <outletCollection property="gestureRecognizers" destination="DP7-Ye-Hxa" appends="YES" id="btG-ll-t4m"/>
-                                        </connections>
-                                    </imageView>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RCT-T2-Yp5">
+                                    </view>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RCT-T2-Yp5" userLabel="InfoView">
                                         <rect key="frame" x="0.0" y="160" width="335" height="447"/>
                                         <subviews>
                                             <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VJq-wa-Lsp">
@@ -305,6 +324,7 @@
                         <outlet property="exImageView" destination="r4B-rF-bGl" id="7MZ-1f-vzE"/>
                         <outlet property="exKeyLabel" destination="Cez-ob-cRk" id="Qye-ck-Cei"/>
                         <outlet property="exView" destination="JVw-OH-Kqe" id="74S-Tq-vr6"/>
+                        <outlet property="fb360ImageView" destination="dgu-5B-09f" id="BRI-zT-8B7"/>
                         <outlet property="hFOVField" destination="Prk-XB-hHx" id="or3-G6-4yF"/>
                         <outlet property="imageView" destination="TU7-Cy-PCh" id="fZX-dT-jYk"/>
                         <outlet property="metaBtn" destination="esn-lr-3kZ" id="SLx-i9-L0r"/>
@@ -363,4 +383,7 @@
             <point key="canvasLocation" x="969" y="-50"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="fb360" width="168" height="168"/>
+    </resources>
 </document>
