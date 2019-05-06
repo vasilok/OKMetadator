@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface PanoViewController : UIViewController
 
-- (instancetype)initWithImage:(UIImage *)image pano:(NSDictionary *)panoDict;
+- (instancetype)initWithImage:(UIImage *)image fromImage:(BOOL)fromImage pano:(NSDictionary *)panoDict;
 
 @end
 

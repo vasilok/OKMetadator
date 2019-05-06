@@ -12,19 +12,21 @@
 @interface PanoViewController ()
 @property(nonatomic) UIImage *image;
 @property(nonatomic) NSDictionary *panoDict;
-
+@property(nonatomic) BOOL isImage;
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (weak, nonatomic) IBOutlet UILabel *errorLabel;
 
 @end
 
 @implementation PanoViewController
 
-- (instancetype)initWithImage:(UIImage *)image pano:(NSDictionary *)panoDict
+- (instancetype)initWithImage:(UIImage *)image fromImage:(BOOL)fromImage pano:(NSDictionary *)panoDict
 {
     self = [super initWithNibName:nil bundle:nil];
     if (self) {
         _image = image;
         _panoDict = panoDict;
+        _isImage = fromImage;
     }
     
     return self;
@@ -46,20 +48,40 @@
 {
     CGSize imageViewSize = CGSizeMake(size.width, size.width/2);
     
-    CGFloat gPanoWidth = [_panoDict[GP(FullPanoWidthPixels)] floatValue];
-    CGFloat gPanoHeight = [_panoDict[GP(FullPanoHeightPixels)] floatValue];
-    CGFloat gImageWidth = [_panoDict[GP(CroppedAreaImageWidthPixels)] floatValue];
-    CGFloat gImageHeight = [_panoDict[GP(CroppedAreaImageHeightPixels)] floatValue];
-    CGFloat gLeft = [_panoDict[GP(CroppedAreaLeftPixels)] floatValue];
-    CGFloat gTop = [_panoDict[GP(CroppedAreaTopPixels)] floatValue];
+    CGFloat gPanoWidth = _isImage ? [_panoDict[GP(FullPanoWidthPixels)] floatValue] : [_panoDict[FullPanoWidthPixels] floatValue];
+    CGFloat gPanoHeight = _isImage ? [_panoDict[GP(FullPanoHeightPixels)] floatValue] : [_panoDict[FullPanoHeightPixels] floatValue];
+    CGFloat gImageWidth = _isImage ? [_panoDict[GP(CroppedAreaImageWidthPixels)] floatValue] : [_panoDict[CroppedAreaImageWidthPixels] floatValue];
+    CGFloat gImageHeight = _isImage ? [_panoDict[GP(CroppedAreaImageHeightPixels)] floatValue] : [_panoDict[CroppedAreaImageHeightPixels] floatValue];
+    CGFloat gLeft = _isImage ? [_panoDict[GP(CroppedAreaLeftPixels)] floatValue] : [_panoDict[CroppedAreaLeftPixels] floatValue];
+    CGFloat gTop = _isImage ? [_panoDict[GP(CroppedAreaTopPixels)] floatValue] : [_panoDict[CroppedAreaTopPixels] floatValue];
     
-    if ((gImageWidth != _image.size.width) ||
-        (gImageHeight != _image.size.height) ||
-        (gPanoWidth != gPanoHeight * 2) ||
-        (gPanoWidth != gImageWidth + gLeft * 2) ||
-        (gPanoHeight != gImageHeight + gTop * 2) )
+    BOOL error = NO;
+    
+    if (gImageWidth != _image.size.width) {
+        _errorLabel.text = @"CroppedAreaImageWidthPixels != image.size.width";
+        error = YES;
+    }
+    if (gImageHeight != _image.size.height) {
+        _errorLabel.text = @"CroppedAreaImageHeightPixels != image.size.height";
+        error = YES;
+    }
+    if (gPanoWidth != gImageWidth + gLeft * 2) {
+        _errorLabel.text = @"FullPanoWidthPixels != image.size.width + CroppedAreaLeftPixels * 2";
+        error = YES;
+    }
+    if (gPanoHeight != gImageHeight + gTop * 2) {
+        _errorLabel.text = @"FullPanoHeightPixels != image.size.height + CroppedAreaImageHeightPixels * 2";
+        error = YES;
+    }
+    if (_isImage && (gPanoWidth != gPanoHeight * 2)) {
+        _errorLabel.text = @"IMAGE: FullPanoWidthPixels != FullPanoHeightPixels * 2";
+        error = YES;
+    }
+    
+    if (error)
     {
-        _imageView.autoresizingMask = UIViewContentModeScaleAspectFit;
+        _errorLabel.hidden = NO;
+        _imageView.contentMode = UIViewContentModeScaleAspectFit;
         _imageView.image = [UIImage imageNamed:@"error"];
         return;
     }
@@ -69,7 +91,7 @@
     
     UIImage *resized = [self resize:CGSizeMake(newImageWidth, newImageHeight) image:_image];
     
-    _imageView.autoresizingMask = UIViewContentModeCenter;
+    _imageView.contentMode = UIViewContentModeCenter;
     _imageView.image = resized;
 }
 

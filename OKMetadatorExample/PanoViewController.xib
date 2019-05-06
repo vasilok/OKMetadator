@@ -12,6 +12,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="PanoViewController">
             <connections>
+                <outlet property="errorLabel" destination="VfF-wj-bef" id="Zwa-OM-LEy"/>
                 <outlet property="imageView" destination="AyH-0r-jjw" id="fNN-E8-cjy"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
@@ -45,15 +46,27 @@
                         <action selector="close:" destination="-1" eventType="touchDown" id="K2o-He-bVF"/>
                     </connections>
                 </button>
+                <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VfF-wj-bef">
+                    <rect key="frame" x="20" y="591.5" width="374" height="60"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="60" id="fo5-q7-LF9"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="italicSystem" pointSize="17"/>
+                    <nil key="textColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
             </subviews>
             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
             <constraints>
                 <constraint firstItem="iag-AX-ASZ" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="842-Ym-MHa"/>
                 <constraint firstItem="E9r-2a-KbL" firstAttribute="top" secondItem="Q5M-cg-NOt" secondAttribute="top" constant="10" id="9xG-Mw-8Jh"/>
+                <constraint firstItem="VfF-wj-bef" firstAttribute="top" secondItem="AyH-0r-jjw" secondAttribute="bottom" constant="40" id="GkK-Ia-wzi"/>
                 <constraint firstItem="Q5M-cg-NOt" firstAttribute="trailing" secondItem="AyH-0r-jjw" secondAttribute="trailing" id="KP5-i6-PS2"/>
                 <constraint firstItem="iag-AX-ASZ" firstAttribute="centerY" secondItem="i5M-Pr-FkT" secondAttribute="centerY" id="Qy2-O7-3oM"/>
+                <constraint firstItem="Q5M-cg-NOt" firstAttribute="trailing" secondItem="VfF-wj-bef" secondAttribute="trailing" constant="20" id="Rhd-ec-IgX"/>
                 <constraint firstItem="AyH-0r-jjw" firstAttribute="centerX" secondItem="i5M-Pr-FkT" secondAttribute="centerX" id="Wqp-JD-FJy"/>
                 <constraint firstItem="iag-AX-ASZ" firstAttribute="trailing" secondItem="Q5M-cg-NOt" secondAttribute="trailing" id="uNt-Bg-ILq"/>
+                <constraint firstItem="VfF-wj-bef" firstAttribute="leading" secondItem="Q5M-cg-NOt" secondAttribute="leading" constant="20" id="vWv-3d-3jU"/>
                 <constraint firstItem="Q5M-cg-NOt" firstAttribute="trailing" secondItem="E9r-2a-KbL" secondAttribute="trailing" constant="10" id="woO-XP-v0U"/>
                 <constraint firstItem="AyH-0r-jjw" firstAttribute="centerY" secondItem="i5M-Pr-FkT" secondAttribute="centerY" id="yYX-7g-oQ0"/>
             </constraints>

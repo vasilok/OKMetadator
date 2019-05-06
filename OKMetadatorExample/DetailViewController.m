@@ -326,7 +326,23 @@
 
 - (IBAction)showPano:(UIButton *)sender
 {
-    PanoViewController *panoVC = [[PanoViewController alloc] initWithImage:_image pano:_meta[PanoNamespace]];
+    UIImage *panoImage = _image;
+    NSDictionary *panoDict = _meta[PanoNamespace];
+    if (_videoMetadator) {
+        AVAsset *expAsset = [AVAsset assetWithURL:_URL];
+        AVAssetImageGenerator *gen = [[AVAssetImageGenerator alloc] initWithAsset:expAsset];
+        CMTime time = CMTimeMakeWithSeconds(1, NSEC_PER_SEC);
+        
+        NSError *error;
+        CGImageRef imRef = [gen copyCGImageAtTime:time actualTime:nil error:&error];
+        
+        panoImage = [UIImage imageWithCGImage:imRef];
+        panoDict = _meta[SphericalVideo];
+    }
+    
+    PanoViewController *panoVC = [[PanoViewController alloc] initWithImage:panoImage
+                                                                 fromImage:(_imageMetadator != nil)
+                                                                      pano:panoDict];
     [self presentViewController:panoVC animated:YES completion:NULL];
 }
 
