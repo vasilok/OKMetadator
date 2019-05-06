@@ -28,6 +28,7 @@
 @property (weak, nonatomic) IBOutlet UIView *exView;
 @property (weak, nonatomic) IBOutlet UIImageView *exImageView;
 @property (weak, nonatomic) IBOutlet UILabel *exKeyLabel;
+@property (weak, nonatomic) IBOutlet UIButton *exportBtn;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 
@@ -38,6 +39,7 @@
 @property(nonatomic) NSDictionary *params;
 @property(nonatomic) OKImageSphericalMetadator *imageMetadator;
 @property(nonatomic) OKVideoSphericalMetadator *videoMetadator;
+
 @end
 
 #define CLOSED 60
@@ -130,6 +132,8 @@
     _exView.hidden = _exImage == nil;
     _exImageView.image = _exImage;
     _exKeyLabel.text = _exKey;
+    _exportBtn.hidden = _exImage == nil;
+    [_exportBtn setBackgroundImage:nil forState:UIControlStateNormal];
     
     [_metaView setText:[[self printMetaDictionary] description]];
     [_propView setText:[_params description]];
@@ -322,6 +326,21 @@
     else if (sender == _exBtn) {
         [_exView.superview bringSubviewToFront:_exView];
     }
+}
+
+- (IBAction)exportEx:(id)sender
+{
+    _librarian = [Librarian new];
+    
+    NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
+    
+    NSData *imageData = UIImageJPEGRepresentation(_exImage, 1.0);
+    [imageData writeToURL:tempURL atomically:YES];
+    
+    [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
+     {
+        
+    }];
 }
 
 - (IBAction)showPano:(UIButton *)sender

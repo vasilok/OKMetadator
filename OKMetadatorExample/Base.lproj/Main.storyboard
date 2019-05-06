@@ -214,11 +214,25 @@
                                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="r4B-rF-bGl" userLabel="ImageView">
                                                         <rect key="frame" x="10" y="45" width="315" height="352"/>
                                                     </imageView>
+                                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ly4-XV-8G7">
+                                                        <rect key="frame" x="295" y="377" width="40" height="40"/>
+                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                        <constraints>
+                                                            <constraint firstAttribute="width" constant="40" id="1OY-BI-B8T"/>
+                                                            <constraint firstAttribute="height" constant="40" id="8re-zY-P5T"/>
+                                                        </constraints>
+                                                        <state key="normal" image="ex"/>
+                                                        <connections>
+                                                            <action selector="exportEx:" destination="4j4-EO-8oE" eventType="touchDown" id="lIa-V9-Vfs"/>
+                                                        </connections>
+                                                    </button>
                                                 </subviews>
                                                 <color key="backgroundColor" red="0.79938703779999998" green="0.37700533870000003" blue="0.2548383474" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                 <constraints>
                                                     <constraint firstAttribute="bottom" secondItem="r4B-rF-bGl" secondAttribute="bottom" constant="20" id="24d-zU-bEJ"/>
+                                                    <constraint firstAttribute="bottom" secondItem="Ly4-XV-8G7" secondAttribute="bottom" id="Qks-9X-tLI"/>
                                                     <constraint firstItem="r4B-rF-bGl" firstAttribute="leading" secondItem="JVw-OH-Kqe" secondAttribute="leading" constant="10" id="aPv-dH-YSl"/>
+                                                    <constraint firstAttribute="trailing" secondItem="Ly4-XV-8G7" secondAttribute="trailing" id="dEK-eO-2V1"/>
                                                     <constraint firstItem="r4B-rF-bGl" firstAttribute="top" secondItem="Cez-ob-cRk" secondAttribute="bottom" constant="10" id="gER-5P-UBa"/>
                                                     <constraint firstItem="Cez-ob-cRk" firstAttribute="leading" secondItem="JVw-OH-Kqe" secondAttribute="leading" id="hvb-U8-iHC"/>
                                                     <constraint firstItem="Cez-ob-cRk" firstAttribute="top" secondItem="JVw-OH-Kqe" secondAttribute="top" constant="5" id="pIW-3f-hQm"/>
@@ -328,6 +342,7 @@
                         <outlet property="exImageView" destination="r4B-rF-bGl" id="7MZ-1f-vzE"/>
                         <outlet property="exKeyLabel" destination="Cez-ob-cRk" id="Qye-ck-Cei"/>
                         <outlet property="exView" destination="JVw-OH-Kqe" id="74S-Tq-vr6"/>
+                        <outlet property="exportBtn" destination="Ly4-XV-8G7" id="sBR-uD-YdB"/>
                         <outlet property="hFOVField" destination="Prk-XB-hHx" id="or3-G6-4yF"/>
                         <outlet property="imageView" destination="TU7-Cy-PCh" id="fZX-dT-jYk"/>
                         <outlet property="metaBtn" destination="esn-lr-3kZ" id="SLx-i9-L0r"/>
@@ -395,6 +410,7 @@
     </scenes>
     <resources>
         <image name="close" width="256" height="256"/>
+        <image name="ex" width="256" height="256"/>
         <image name="fb360" width="168" height="168"/>
     </resources>
 </document>
