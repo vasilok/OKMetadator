@@ -189,9 +189,7 @@
         if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
+                [self showResult:success];
             }];
         }
     }
@@ -201,9 +199,7 @@
          {
              if (success) {
                  [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
-                     if (success) {
-                         [[self navigationController] popViewControllerAnimated:YES];
-                     }
+                     [self showResult:success];
                  }];
              }
          }];
@@ -217,9 +213,7 @@
         if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
         {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
+                [self showResult:success];
             }];
         }
     }
@@ -229,9 +223,7 @@
          {
             if (success) {
                 [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
-                    if (success) {
-                        [[self navigationController] popViewControllerAnimated:YES];
-                    }
+                    [self showResult:success];
                 }];
             }
          }];
@@ -269,9 +261,7 @@
         [_imageMetadator makePanoImage:_image withHorizontalFOV:hFov verticalFOV:vFov meta:_meta outputURL:tempURL completion:^(BOOL success) {
             if (success) {
                 [self.librarian saveImageToLibrary:tempURL withCompletion:^(BOOL libSuccess) {
-                    if (libSuccess) {
-                        [[self navigationController] popViewControllerAnimated:YES];
-                    }
+                    [self showResult:libSuccess];
                 }];
             }
         }];
@@ -285,9 +275,7 @@
         
         if ([_imageMetadator removePanoFromImageAt:_URL outputURL:tempURL]) {
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
-                if (success) {
-                    [[self navigationController] popViewControllerAnimated:YES];
-                }
+                [self showResult:success];
             }];
         }
     }
@@ -296,9 +284,7 @@
         [_videoMetadator removeSphericalFromVideoAt:_URL outputURL:tempURL completion:^(BOOL success) {
             if (success) {
                 [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
-                    if (success) {
-                        [[self navigationController] popViewControllerAnimated:YES];
-                    }
+                    [self showResult:success];
                 }];
             }
         }];
@@ -339,7 +325,7 @@
     
     [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
      {
-        
+         [self showResult:success];
     }];
 }
 
@@ -363,6 +349,17 @@
                                                                  fromImage:(_imageMetadator != nil)
                                                                       pano:panoDict];
     [self presentViewController:panoVC animated:YES completion:NULL];
+}
+
+- (void)showResult:(BOOL)success
+{
+    UIAlertController *ac = [UIAlertController alertControllerWithTitle:(success ? @"Success" : @"Failure") message:@"" preferredStyle:UIAlertControllerStyleAlert];
+    
+    [self presentViewController:ac animated:YES completion:^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [ac dismissViewControllerAnimated:YES completion:NULL];
+        });
+    }];
 }
 
 @end
