@@ -159,7 +159,7 @@
                                                     <outletCollection property="gestureRecognizers" destination="DP7-Ye-Hxa" appends="YES" id="btG-ll-t4m"/>
                                                 </connections>
                                             </imageView>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MeM-bK-MOP">
+                                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MeM-bK-MOP">
                                                 <rect key="frame" x="295" y="110" width="40" height="40"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="40" id="KpC-cC-T85"/>
