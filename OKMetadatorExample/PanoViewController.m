@@ -77,6 +77,11 @@
         _errorLabel.text = @"IMAGE: FullPanoWidthPixels != FullPanoHeightPixels * 2";
         error = YES;
     }
+    if ( (_isImage && !_panoDict[GP(ProjectionType)]) || (!_isImage && !_panoDict[ProjectionType]) )
+    {
+        _errorLabel.text = @"ProjectionType does not defined !";
+        error = YES;
+    }
     
     if (error)
     {
