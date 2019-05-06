@@ -41,6 +41,8 @@
 		048F3C1A227B2A51007EDCB9 /* OKImageGVRMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C19227B2A51007EDCB9 /* OKImageGVRMetadator.m */; };
 		048F3C21227C2A51007EDCB9 /* OKJpegParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */; };
 		048F3C24227C47B1007EDCB9 /* ImageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C23227C47B1007EDCB9 /* ImageViewController.m */; };
+		048F3C28228010ED007EDCB9 /* PanoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 048F3C26228010ED007EDCB9 /* PanoViewController.m */; };
+		048F3C29228010ED007EDCB9 /* PanoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 048F3C27228010ED007EDCB9 /* PanoViewController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,6 +105,9 @@
 		048F3C20227C2A51007EDCB9 /* OKJpegParser.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OKJpegParser.mm; sourceTree = "<group>"; };
 		048F3C22227C47B1007EDCB9 /* ImageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageViewController.h; sourceTree = "<group>"; };
 		048F3C23227C47B1007EDCB9 /* ImageViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ImageViewController.m; sourceTree = "<group>"; };
+		048F3C25228010ED007EDCB9 /* PanoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PanoViewController.h; sourceTree = "<group>"; };
+		048F3C26228010ED007EDCB9 /* PanoViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PanoViewController.m; sourceTree = "<group>"; };
+		048F3C27228010ED007EDCB9 /* PanoViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PanoViewController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -224,6 +229,9 @@
 				0487D606222833E900B63C66 /* DetailViewController.m */,
 				048F3C22227C47B1007EDCB9 /* ImageViewController.h */,
 				048F3C23227C47B1007EDCB9 /* ImageViewController.m */,
+				048F3C25228010ED007EDCB9 /* PanoViewController.h */,
+				048F3C26228010ED007EDCB9 /* PanoViewController.m */,
+				048F3C27228010ED007EDCB9 /* PanoViewController.xib */,
 				0487D5EB2228271100B63C66 /* Main.storyboard */,
 				0487D5EE2228271200B63C66 /* Assets.xcassets */,
 				0487D5F02228271200B63C66 /* LaunchScreen.storyboard */,
@@ -312,6 +320,7 @@
 			files = (
 				04097AB4222FC7CF0048416C /* README.md in Resources */,
 				0487D5F22228271200B63C66 /* LaunchScreen.storyboard in Resources */,
+				048F3C29228010ED007EDCB9 /* PanoViewController.xib in Resources */,
 				0487D5EF2228271200B63C66 /* Assets.xcassets in Resources */,
 				0487D5ED2228271100B63C66 /* Main.storyboard in Resources */,
 				04097AB3222FC7CF0048416C /* LICENSE in Resources */,
@@ -325,6 +334,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				048F3C28228010ED007EDCB9 /* PanoViewController.m in Sources */,
 				04097AC0222FC7CF0048416C /* metadata_utils.cpp in Sources */,
 				0487D5EA2228271100B63C66 /* ViewController.m in Sources */,
 				04097ABB222FC7CF0048416C /* mxml-private.c in Sources */,

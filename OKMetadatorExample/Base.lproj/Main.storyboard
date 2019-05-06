@@ -159,22 +159,26 @@
                                                     <outletCollection property="gestureRecognizers" destination="DP7-Ye-Hxa" appends="YES" id="btG-ll-t4m"/>
                                                 </connections>
                                             </imageView>
-                                            <imageView hidden="YES" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="fb360" translatesAutoresizingMaskIntoConstraints="NO" id="dgu-5B-09f">
-                                                <rect key="frame" x="294" y="109" width="41" height="41"/>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="MeM-bK-MOP">
+                                                <rect key="frame" x="295" y="110" width="40" height="40"/>
                                                 <constraints>
-                                                    <constraint firstAttribute="height" constant="41" id="fBj-d1-fzp"/>
-                                                    <constraint firstAttribute="width" constant="41" id="qWZ-hG-nVl"/>
+                                                    <constraint firstAttribute="width" constant="40" id="KpC-cC-T85"/>
+                                                    <constraint firstAttribute="height" constant="40" id="rbe-2g-MzN"/>
                                                 </constraints>
-                                            </imageView>
+                                                <state key="normal" image="fb360"/>
+                                                <connections>
+                                                    <action selector="showPano:" destination="4j4-EO-8oE" eventType="touchDown" id="Dph-Fc-J2L"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
-                                            <constraint firstAttribute="trailing" secondItem="dgu-5B-09f" secondAttribute="trailing" id="1h5-VJ-0Yw"/>
-                                            <constraint firstAttribute="bottom" secondItem="dgu-5B-09f" secondAttribute="bottom" id="4xk-AE-Ulq"/>
                                             <constraint firstAttribute="trailing" secondItem="TU7-Cy-PCh" secondAttribute="trailing" id="Atk-Ww-biz"/>
                                             <constraint firstItem="TU7-Cy-PCh" firstAttribute="top" secondItem="nS1-sf-lFV" secondAttribute="top" id="K6s-vP-Nhd"/>
+                                            <constraint firstAttribute="bottom" secondItem="MeM-bK-MOP" secondAttribute="bottom" id="RBl-uH-XLq"/>
                                             <constraint firstAttribute="height" constant="150" id="dFY-r9-bT7"/>
                                             <constraint firstItem="TU7-Cy-PCh" firstAttribute="leading" secondItem="nS1-sf-lFV" secondAttribute="leading" id="fJS-0f-VcX"/>
+                                            <constraint firstAttribute="trailing" secondItem="MeM-bK-MOP" secondAttribute="trailing" id="fTK-iA-lhz"/>
                                             <constraint firstAttribute="bottom" secondItem="TU7-Cy-PCh" secondAttribute="bottom" id="fwH-ux-SsA"/>
                                         </constraints>
                                     </view>
@@ -324,11 +328,11 @@
                         <outlet property="exImageView" destination="r4B-rF-bGl" id="7MZ-1f-vzE"/>
                         <outlet property="exKeyLabel" destination="Cez-ob-cRk" id="Qye-ck-Cei"/>
                         <outlet property="exView" destination="JVw-OH-Kqe" id="74S-Tq-vr6"/>
-                        <outlet property="fb360ImageView" destination="dgu-5B-09f" id="BRI-zT-8B7"/>
                         <outlet property="hFOVField" destination="Prk-XB-hHx" id="or3-G6-4yF"/>
                         <outlet property="imageView" destination="TU7-Cy-PCh" id="fZX-dT-jYk"/>
                         <outlet property="metaBtn" destination="esn-lr-3kZ" id="SLx-i9-L0r"/>
                         <outlet property="metaView" destination="yLW-0a-wsw" id="5lG-sU-dnd"/>
+                        <outlet property="panoBtn" destination="MeM-bK-MOP" id="OnZ-0s-Cig"/>
                         <outlet property="propBtn" destination="LhC-WC-VbS" id="Vva-dT-4HS"/>
                         <outlet property="propView" destination="mrg-85-93i" id="d44-rP-lKJ"/>
                         <outlet property="topMetasConstraint" destination="U0o-Km-etv" id="TsR-66-r5U"/>
@@ -356,9 +360,13 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="vxg-xM-Z4L">
                                 <rect key="frame" x="0.0" y="20" width="375" height="647"/>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="contactAdd" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ppj-BV-rDY">
-                                <rect key="frame" x="337" y="36" width="22" height="22"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ppj-BV-rDY">
+                                <rect key="frame" x="325" y="30" width="40" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="bpz-dV-yRA"/>
+                                    <constraint firstAttribute="width" constant="40" id="igf-um-gYc"/>
+                                </constraints>
+                                <state key="normal" image="close"/>
                                 <connections>
                                     <action selector="close:" destination="9x5-Gg-8kG" eventType="touchDown" id="L1H-HX-Zro"/>
                                 </connections>
@@ -368,7 +376,9 @@
                         <constraints>
                             <constraint firstItem="vxg-xM-Z4L" firstAttribute="top" secondItem="fth-v7-iZS" secondAttribute="top" id="Kbj-fj-22t"/>
                             <constraint firstItem="fth-v7-iZS" firstAttribute="trailing" secondItem="vxg-xM-Z4L" secondAttribute="trailing" id="d31-B6-Wfa"/>
+                            <constraint firstItem="ppj-BV-rDY" firstAttribute="top" secondItem="I4e-I7-mJG" secondAttribute="top" constant="30" id="g0V-vy-3NE"/>
                             <constraint firstItem="vxg-xM-Z4L" firstAttribute="leading" secondItem="fth-v7-iZS" secondAttribute="leading" id="gtT-iz-H13"/>
+                            <constraint firstAttribute="trailing" secondItem="ppj-BV-rDY" secondAttribute="trailing" constant="10" id="jPR-Py-IQd"/>
                             <constraint firstItem="fth-v7-iZS" firstAttribute="bottom" secondItem="vxg-xM-Z4L" secondAttribute="bottom" id="yOa-J3-7Qo"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="fth-v7-iZS"/>
@@ -384,6 +394,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="close" width="256" height="256"/>
         <image name="fb360" width="168" height="168"/>
     </resources>
 </document>

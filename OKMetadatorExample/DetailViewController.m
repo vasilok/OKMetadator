@@ -12,10 +12,11 @@
 #import <AVFoundation/AVFoundation.h>
 #import "ImageViewController.h"
 #import "OKImageGVRMetadator.h"
+#import "PanoViewController.h"
 
 @interface DetailViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
-@property (weak, nonatomic) IBOutlet UIImageView *fb360ImageView;
+@property (weak, nonatomic) IBOutlet UIButton *panoBtn;
 @property (weak, nonatomic) IBOutlet UITextView *metaView;
 @property (weak, nonatomic) IBOutlet UITextView *propView;
 @property (weak, nonatomic) IBOutlet UITextField *hFOVField;
@@ -139,10 +140,10 @@
     CGFloat fileSize = [[m filePropertiesFromURL:_URL][FileSize] floatValue];
     
     if (_imageMetadator) {
-        _fb360ImageView.hidden = _meta[PanoNamespace] == nil;
+        _panoBtn.hidden = _meta[PanoNamespace] == nil;
     }
     else if (_videoMetadator) {
-        _fb360ImageView.hidden = _meta[SphericalVideo] == nil;
+        _panoBtn.hidden = _meta[SphericalVideo] == nil;
     }
     
     [[self navigationItem] setRightBarButtonItem:[[UIBarButtonItem alloc] initWithTitle:[NSString stringWithFormat:@"%.2f Mb", fileSize] style:UIBarButtonItemStylePlain target:nil action:NULL]];
@@ -321,6 +322,12 @@
     else if (sender == _exBtn) {
         [_exView.superview bringSubviewToFront:_exView];
     }
+}
+
+- (IBAction)showPano:(UIButton *)sender
+{
+    PanoViewController *panoVC = [[PanoViewController alloc] initWithImage:_image pano:_meta[PanoNamespace]];
+    [self presentViewController:panoVC animated:YES completion:NULL];
 }
 
 @end
