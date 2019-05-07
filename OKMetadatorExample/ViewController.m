@@ -58,7 +58,8 @@
         
         if (phAsset.mediaType == PHAssetMediaTypeImage)
         {
-            NSURL *tempURL = [Librarian tempImageURLWithExtension:ext];
+            NSURL *imageURL = [info objectForKey:UIImagePickerControllerImageURL];
+            NSURL *tempURL = imageURL ? [Librarian tempURLWithLastPath:imageURL.lastPathComponent] : [Librarian tempImageURLWithExtension:ext];
             [_librarian fetchImage:phAsset toURL:tempURL withCompletion:^(BOOL success) {
                 if (success)
                 {
@@ -71,7 +72,8 @@
         }
         else if (phAsset.mediaType == PHAssetMediaTypeVideo)
         {
-            NSURL *tempURL = [Librarian tempVideoURLWithExtension:ext];
+            NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
+            NSURL *tempURL = videoURL ? [Librarian tempURLWithLastPath:videoURL.lastPathComponent] : [Librarian tempVideoURLWithExtension:ext];
             [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {
                 if (success)
                 {

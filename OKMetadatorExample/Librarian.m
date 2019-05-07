@@ -146,6 +146,11 @@
     return [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:ext ? ext : @"mp4"]] filePathURL];
 }
 
++ (NSURL *)tempURLWithLastPath:(NSString *)path
+{
+    return [[NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:path]] filePathURL];
+}
+
 - (void)clearTempFolder
 {
     NSArray* tmpDirectory = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:NSTemporaryDirectory() error:NULL];

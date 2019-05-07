@@ -316,13 +316,11 @@
 
 - (IBAction)exportEx:(id)sender
 {
-    _librarian = [Librarian new];
-    
     NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
-    
+
     NSData *imageData = UIImageJPEGRepresentation(_exImage, 1.0);
     [imageData writeToURL:tempURL atomically:YES];
-    
+
     [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
      {
          [self showResult:success];

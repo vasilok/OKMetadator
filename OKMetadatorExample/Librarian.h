@@ -24,6 +24,7 @@ typedef void (^LibrarianCompletion)(BOOL);
 // HELPER
 + (NSURL *)tempImageURLWithExtension:(NSString *)ext;
 + (NSURL *)tempVideoURLWithExtension:(NSString *)ext;
++ (NSURL *)tempURLWithLastPath:(NSString *)path;
 
 @end
 
