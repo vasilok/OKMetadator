@@ -37,7 +37,7 @@
 
 @property(nonatomic) OKMetaParam *meta;
 @property(nonatomic) NSDictionary *params;
-@property(nonatomic) OKImageSphericalMetadator *imageMetadator;
+@property(nonatomic) OKImageMetadator *imageMetadator;
 @property(nonatomic) OKVideoSphericalMetadator *videoMetadator;
 
 @end
@@ -69,7 +69,7 @@
     _image = [UIImage imageWithData:imageData];
     
     _videoMetadator = nil;
-    _imageMetadator = [OKImageSphericalMetadator new];
+    _imageMetadator = [OKImageMetadator new];
     
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];

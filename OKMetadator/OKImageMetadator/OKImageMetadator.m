@@ -15,6 +15,23 @@
 
 #pragma mark Getters
 
+- (instancetype)init
+{
+    self = [super init];
+    
+    if (self)
+    {
+        _completionQueue = dispatch_get_main_queue();
+    }
+    
+    return self;
+}
+
+- (NSString *)captureSoftware
+{
+    return _captureSoftware ? _captureSoftware : @"OKMetadator";
+}
+
 - (CGImageMetadataRef)metaFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");

@@ -19,6 +19,18 @@ NS_ASSUME_NONNULL_BEGIN
 @interface OKImageMetadator : OKMetadator
 
 /*!
+ * @brief Callback queue. Main by default
+ */
+@property(nonatomic) dispatch_queue_t completionQueue;
+
+/*!
+ * @brief Setup value for CaptureSoftware key.
+ * Can be used for -make..  interface.
+ * "OKMetadator" by default.
+ */
+@property(nonatomic, copy) NSString *captureSoftware;
+
+/*!
  * @brief extract metadata of image at URL.
  * @param url indicates image file URL
  * @return CGImageMetadataRef. Caller is responsible of lifetime of object

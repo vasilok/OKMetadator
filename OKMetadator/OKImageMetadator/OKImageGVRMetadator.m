@@ -13,6 +13,8 @@
 
 @implementation OKImageMetadator ( OKImageGVRMetadator )
 
+#pragma mark VR
+
 - (BOOL)makeVRLeftImage:(nonnull UIImage *)leftImage
              rightImage:(nonnull UIImage *)rightImage
                withMeta:(nullable OKMetaParam *)meta
@@ -34,6 +36,13 @@
     
     return [self processMakeVRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
 }
+
+- (NSString *)vrExtension
+{
+    return @"vr.jpg";
+}
+
+#pragma mark Depth
 
 - (BOOL)makeDepthMapWithImage:(nonnull UIImage *)image
                    depthImage:(nonnull UIImage *)depthImage
@@ -78,31 +87,6 @@
     
     return [dParams copy];
 }
-
-//- (CGImageMetadataRef)metaFromImageAtURL:(nonnull NSURL *)url
-//{
-//    CGImageMetadataRef metadata = [super metaFromImageAtURL:url];
-//    NSData *xmp = [self xmpFromImageAtURL:url];
-//
-//    if (xmp) {
-//        metadata = CGImageMetadataCreateFromXMPData((CFDataRef)xmp);
-//    }
-//
-//    return metadata;
-//}
-
-//- (NSData *)xmpFromImageAtURL:(NSURL *)url
-//{
-//    NSData *data = [super xmpFromImageAtURL:url];
-//    if (data == nil)
-//    {
-//        data = [[OKJpegParser new] xmpFromURL:url];
-//    }
-    
-//    NSData *data = [[OKJpegParser new] xmpFromURL:url];
-//
-//    return data;
-//}
 
 - (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url
 {

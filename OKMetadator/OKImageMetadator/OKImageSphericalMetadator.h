@@ -10,24 +10,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-
 /*!
  * @brief Injector and extractor spherical metadata from image
  * @see detail: https://developers.google.com/streetview/spherical-metadata
 */
-@interface OKImageSphericalMetadator : OKImageMetadator
-
-/*!
- * @brief Callback queue. Main by default
- */
-@property(nonatomic) dispatch_queue_t completionQueue;
-
-/*!
- * @brief Setup value for CaptureSoftware key.
- * Can be used for -make..  interface.
- * "OKMetadator" by default.
- */
-@property(nonatomic, copy) NSString *captureSoftware;
+@interface OKImageMetadator (OKImageSphericalMetadator)
 
 /*!
  * @brief Remove GPano tags from metadata
@@ -205,11 +192,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (CGFloat)pano180Aspect;
 
-/*!
- * @brief Getting the conventional extension for vr image
- * @return file extension
- */
-- (NSString *)vrExtension;
 
 
 /*!

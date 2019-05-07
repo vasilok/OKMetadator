@@ -18,7 +18,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 
 /*!
- * @brief Make VR image with side by side layout. Sync
+ * @brief Make VR image with side by side layout. Sync.
+ * Additional image will placed to GImage:Data key
  * @param leftImage indicates the left eye image
  * @param rightImage indicates the right eye image
  * @param meta indicates the set of image meta params with @MetaFormat
@@ -31,7 +32,8 @@ NS_ASSUME_NONNULL_BEGIN
               outputURL:(nonnull NSURL *)outputURL;
 
 /*!
- * @brief Make VR image with side by side layout. Sync
+ * @brief Make VR image with side by side layout. Sync.
+ * Additional image will placed to GImage:Data key
  * @param sbsImage indicates the sbs image
  * @param meta indicates the set of image meta params with @MetaFormat
  * @param outputURL indicates processed url of image file
@@ -41,10 +43,26 @@ NS_ASSUME_NONNULL_BEGIN
                   withMeta:(nullable OKMetaParam *)meta
                  outputURL:(nonnull NSURL *)outputURL;
 
+/*!
+ * @brief Getting the conventional extension for vr image
+ * @return file extension
+ */
+- (NSString *)vrExtension;
 
 /*!
  * @abstract FABRICS METHODS FOR MAKING GOOGLE DEPTH MAPIMAGES
  * https://developers.google.com/depthmap-metadata/reference
+ */
+
+/*!
+ * @brief Make image with depth map. Sync.
+ * Depth image will placed to GDepth:Data key
+ * @param image indicates the original image
+ * @param depthImage indicates the depth image
+ * @param near indicates the near distance in meters
+ * @param far indicates the far distance in meters
+ * @param outputURL indicates processed url of image file
+ * @return result.
  */
 - (BOOL)makeDepthMapWithImage:(nonnull UIImage *)image
                    depthImage:(nonnull UIImage *)depthImage
@@ -52,7 +70,13 @@ NS_ASSUME_NONNULL_BEGIN
                           far:(CGFloat)far
                     outputURL:(nonnull NSURL *)outputURL;
 
-
+/*!
+ * @brief make Dictionary with meta params for image with depth map
+ * @param depthImage indicates the depth image
+ * @param near indicates the near distance in meters
+ * @param far indicates the far distance in meters
+ * @return NSDictionary
+ */
 - (nullable NSDictionary *)depthParamsWithDepthImage:(UIImage *)depthImage
                                                 near:(CGFloat)near
                                                  far:(CGFloat)far;

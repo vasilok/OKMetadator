@@ -9,24 +9,7 @@
 #import "OKImageSphericalMetadator.h"
 #import <os/log.h>
 
-@implementation OKImageSphericalMetadator
-
-- (instancetype)init
-{
-    self = [super init];
-    
-    if (self)
-    {
-        _completionQueue = dispatch_get_main_queue();
-    }
-    
-    return self;
-}
-
-- (NSString *)captureSoftware
-{
-    return _captureSoftware ? _captureSoftware : @"OKMetadator";
-}
+@implementation OKImageMetadator (OKImageSphericalMetadator) //OKImageSphericalMetadator
 
 - (void)removePanoFromImageAt:(NSURL *)url outputURL:(nonnull NSURL *)outputURL completion:(nullable OKSphereMetaInjectorCompletion)completion
 {
@@ -282,11 +265,6 @@
 - (CGFloat)pano180Aspect
 {
     return 1;
-}
-
-- (NSString *)vrExtension
-{
-    return @"vr.jpg";
 }
 
 - (BOOL)verifyParam:(id)param forPanoKey:(NSString *)key
