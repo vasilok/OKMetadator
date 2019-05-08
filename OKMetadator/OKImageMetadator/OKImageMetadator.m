@@ -142,6 +142,77 @@
     return nil;
 }
 
+- (BOOL)applyMap:(nonnull UIImage *)map
+      forImageAt:(nonnull NSURL *)imageURL
+      andWriteAt:(nonnull NSURL *)url
+{
+    return NO;
+}
+
+- (BOOL)applyMap:(nonnull UIImage *)map
+        forImage:(nonnull UIImage *)image
+      andWriteAt:(nonnull NSURL *)url
+{
+    NSAssert(map && image && url, @"Unexpected NIL!");
+    
+    NSDictionary *flatDataDict;
+    NSError *error;
+    
+    AVDepthData *data = [AVDepthData depthDataFromDictionaryRepresentation:flatDataDict error:&error];
+    if (data == nil) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create flat deapth data with error %@", error);
+        return NO;
+    }
+    
+    CVPixelBufferRef pb = [self pixelBufferFromCGImage:map.CGImage];
+    if (pb == NULL) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create Pixel Buffer from map");
+        return NO;
+    }
+    
+    AVDepthData *resultData = [data depthDataByReplacingDepthDataMapWithPixelBuffer:pb error:&error];
+    if (resultData == NULL) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create depth data with error %@", error);
+        return NO;
+    }
+    
+    NSDictionary *diparityDict = [resultData dictionaryRepresentationForAuxiliaryDataType:nil];
+    if (diparityDict == NULL) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create representation from disparity data");
+        return NO;
+    }
+    
+    BOOL result = [self processImage:image properties:nil meta:nil aux:@{CFS(AUX_DISPARITY) : diparityDict} atURL:url];
+    
+    return result;
+}
+
+- (CVPixelBufferRef)pixelBufferFromCGImage:(CGImageRef)image{
+    
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
+    CVPixelBufferRef pxbuffer = NULL;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image), CGImageGetHeight(image),
+                                          kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)options, &pxbuffer);
+    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSParameterAssert(pxdata != NULL);
+    
+    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image), CGImageGetHeight(image), 8, 4*CGImageGetWidth(image), rgbColorSpace, kCGImageAlphaNoneSkipFirst);
+    NSParameterAssert(context);
+    CGContextConcatCTM(context, CGAffineTransformIdentity);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
+    CGColorSpaceRelease(rgbColorSpace);
+    CGContextRelease(context);
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    return pxbuffer;
+}
+
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
 {
     CGImageMetadataRef metadata = [self metaFromImageAtURL:url];

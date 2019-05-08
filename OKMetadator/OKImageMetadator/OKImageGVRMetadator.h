@@ -110,6 +110,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (nullable UIImage *)dataImageFromImageAtURL:(nonnull NSURL *)url;
 
+/*!
+ * @brief Make "Portrait" image from image with depth map. Sync.
+ * @param depthImageURL indicates the url of image with depth map
+ * @param disparityURL indicates the target url
+ * @return result.
+ */
+- (BOOL)convertDepthImageAt:(nonnull NSURL *)depthImageURL
+         toDisparityImageAt:(nonnull NSURL *)disparityURL;
+
 @end
 
 NS_ASSUME_NONNULL_END

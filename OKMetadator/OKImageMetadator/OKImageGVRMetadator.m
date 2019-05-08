@@ -134,6 +134,12 @@
     return nil;
 }
 
+- (BOOL)convertDepthImageAt:(nonnull NSURL *)depthImageURL
+         toDisparityImageAt:(nonnull NSURL *)disparityURL
+{
+    return NO;
+}
+
 #pragma mark Private
 
 - (UIImage *)gImageFromString:(NSString *)string
