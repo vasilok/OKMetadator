@@ -70,6 +70,11 @@
     NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
     if (disparity) {
         [aux setObject:disparity forKey:CFS(AUX_DISPARITY)];
+        
+        NSData *imageData = disparity[CFS(kCGImageAuxiliaryDataInfoData)];
+        //NSData *imageData = [[NSData alloc] initWithBase64EncodedString:imageString options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        UIImage *i = [UIImage imageWithData:imageData];
+        NSLog(@"D Image %@", i);
     }
     
     if (@available(iOS 12.0, *)) {
@@ -185,6 +190,45 @@
     BOOL result = [self processImage:image properties:nil meta:nil aux:@{CFS(AUX_DISPARITY) : diparityDict} atURL:url];
     
     return result;
+}
+
+- (NSDictionary *)flatDisparityDictionaryWithSize:(CGSize)size
+{
+//    kCGImageAuxiliaryDataInfoData = <...> length=1769472;
+//    kCGImageAuxiliaryDataInfoDataDescription =     {
+//        BytesPerRow = 2304;
+//        Height = 768;
+//        PixelFormat = 1717856627;
+//        Width = 576;
+//    };
+//    kCGImageAuxiliaryDataInfoMetadata =     {
+//        "http://ns.apple.com/ImageIO/1.0/" =         {
+//            "iio:hasXMP" = True;
+//        };
+//        "http://ns.apple.com/depthData/1.0/" =         {
+//            "depthData:Accuracy" = relative;
+//            "depthData:Filtered" = True;
+//            "depthData:Quality" = high;
+//        };
+//    };
+    
+    return @{};
+}
+
+- (NSDictionary *)flatDisparityMetadataWithSize:(CGSize)size
+{
+    NSMutableDictionary *flatDict = [[self flatDisparityDictionaryWithSize:size] mutableCopy];
+    
+    NSDictionary *metaDict = flatDict[CFS(AUX_META)];
+    
+    CGImageMetadataRef meta = [self metadataFromMetaParams:metaDict];
+    
+    if (meta)
+    {
+        flatDict[CFS(AUX_META)] = CFBridgingRelease(meta);
+    }
+    
+    return [flatDict copy];
 }
 
 - (CVPixelBufferRef)pixelBufferFromCGImage:(CGImageRef)image{

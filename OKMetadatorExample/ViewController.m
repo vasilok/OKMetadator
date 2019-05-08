@@ -60,6 +60,8 @@
         {
             NSURL *imageURL = [info objectForKey:UIImagePickerControllerImageURL];
             NSURL *tempURL = imageURL ? [Librarian tempURLWithLastPath:imageURL.lastPathComponent] : [Librarian tempImageURLWithExtension:ext];
+            [[NSFileManager defaultManager] removeItemAtURL:tempURL error:NULL];
+            
             [_librarian fetchImage:phAsset toURL:tempURL withCompletion:^(BOOL success) {
                 if (success)
                 {
@@ -74,6 +76,8 @@
         {
             NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
             NSURL *tempURL = videoURL ? [Librarian tempURLWithLastPath:videoURL.lastPathComponent] : [Librarian tempVideoURLWithExtension:ext];
+            [[NSFileManager defaultManager] removeItemAtURL:tempURL error:NULL];
+            
             [_librarian fetchVideo:phAsset toURL:tempURL withCompletion:^(BOOL success) {
                 if (success)
                 {
