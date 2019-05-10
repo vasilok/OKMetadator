@@ -74,28 +74,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief Make "Portrait" image from image with depth map. Sync.
- * @param map indicates the depth map (grayscale)
- * @param imageURL indicates the original image url
- * @param url indicates the target url
- * @return result.
- */
-- (BOOL)applyMap:(nonnull UIImage *)map
-      forImageAt:(nonnull NSURL *)imageURL
-      andWriteAt:(nonnull NSURL *)url;
-
-/*!
- * @brief Make "Portrait" image from image with depth map. Sync.
- * @param map indicates the depth map (grayscale)
- * @param image indicates the original image
- * @param url indicates the target url
- * @return result.
- */
-- (BOOL)applyMap:(nonnull UIImage *)map
-        forImage:(nonnull UIImage *)image
-      andWriteAt:(nonnull NSURL *)url;
-
-/*!
  * @brief extract properties of image at URL
  * @param url indicates image file URL
  * @return NSDictionary with obvious format
