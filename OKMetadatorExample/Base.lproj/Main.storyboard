@@ -245,7 +245,7 @@
                                                     <constraint firstAttribute="height" constant="30" id="ZbQ-Gb-UBZ"/>
                                                     <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="30" id="eZF-pL-hky"/>
                                                 </constraints>
-                                                <state key="normal" title="Ex Image">
+                                                <state key="normal" title="&lt;- Ex Image -&gt;">
                                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 </state>
                                                 <connections>
