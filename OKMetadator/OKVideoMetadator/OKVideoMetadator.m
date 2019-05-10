@@ -309,12 +309,3 @@
 }
 
 @end
-
-@implementation NSData (SafePrint)
-
-- (NSString *)description
-{
-    return [NSString stringWithFormat:@"<...> length=%ld", self.length];
-}
-
-@end

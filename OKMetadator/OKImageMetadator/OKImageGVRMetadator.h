@@ -81,34 +81,21 @@ NS_ASSUME_NONNULL_BEGIN
                                                 near:(CGFloat)near
                                                  far:(CGFloat)far;
 
-
 /*!
- * @brief make CIImage depth map from GDepth:Data
+ * @brief extract images from GDepth:Data / GImage:Data
  * @param url indicates image file URL
- * @return CIImage
+ * @return NSDictionary with format : {tag : UIImage}
  */
-- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url;
+- (nullable NSDictionary *)dataImagesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief make UIImage depth map from GDepth:Data
- * @param url indicates image file URL
- * @return UIImage
+ * @brief Make "Portrait" image from image with depth map. Sync.
+ * @param depthImageURL indicates the url of image with depth map
+ * @param disparityURL indicates the target url
+ * @return result.
  */
-- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief make CIImage depth map from GImage:Data
-* @param url indicates image file URL
-* @return CIImage
-*/
-- (nullable CIImage *)dataCIImageFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief make UIImage depth map from GImage:Data
- * @param url indicates image file URL
- * @return UIImage
- */
-- (nullable UIImage *)dataImageFromImageAtURL:(nonnull NSURL *)url;
+- (BOOL)convertDepthImageAt:(nonnull NSURL *)depthImageURL
+         toDisparityImageAt:(nonnull NSURL *)disparityURL;
 
 @end
 

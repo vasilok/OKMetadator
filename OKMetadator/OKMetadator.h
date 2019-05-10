@@ -32,6 +32,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define PanoNamespace   @"http://ns.google.com/photos/1.0/panorama/"
 #define GoogleNamespace @"http://ns.google.com/photos/1.0/image/"
 #define AppleNamespace  @"http://ns.apple.com/ImageIO/1.0/"
+#define AppleDepthNamespace  @"http://ns.apple.com/depthData/1.0/"
 #define GDepthNamespace  @"http://ns.google.com/photos/1.0/depthmap/"
 #define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
 
@@ -53,6 +54,16 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define AUX_DATA kCGImageAuxiliaryDataInfoData
 #define AUX_INFO kCGImageAuxiliaryDataInfoDataDescription
 #define AUX_META kCGImageAuxiliaryDataInfoMetadata
+
+#define AUX_BYTES_PER_ROW @"BytesPerRow"
+#define AUX_HEIGHT        @"Height"
+#define AUX_WIDTH         @"Width"
+#define AUX_PIXEL_FORMAT  @"PixelFormat"
+
+#define ADepth @"depthData"
+#define Accuracy @"Accuracy"
+#define Filtered @"Filtered"
+#define Quality @"Quality"
 
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"

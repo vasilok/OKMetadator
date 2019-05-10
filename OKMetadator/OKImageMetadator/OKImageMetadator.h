@@ -67,19 +67,40 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief make CIImage depth map from aux metadata
+ * @brief extract images from auxiliary metadata
  * @param url indicates image file URL
- * @return CIImage
+ * @return NSDictionary with format : {aux type : UIImage}
  */
-- (nullable CIImage *)disparityCIImageFromImageAtURL:(nonnull NSURL *)url;
+- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief make UIImage depth map from aux metadata
- * @param url indicates image file URL
- * @return UIImage
+ * @brief Make "Portrait" image from image with depth map. Sync.
+ * @param map indicates the depth map (grayscale)
+ * @param imageURL indicates the original image url
+ * @param url indicates the target url
+ * @return result.
  */
-- (nullable UIImage *)disparityImageFromImageAtURL:(nonnull NSURL *)url;
+- (BOOL)applyMap:(nonnull UIImage *)map
+      forImageAt:(nonnull NSURL *)imageURL
+      andWriteAt:(nonnull NSURL *)url;
 
+/*!
+ * @brief Make "Portrait" image from image with depth map. Sync.
+ * @param map indicates the depth map (grayscale)
+ * @param image indicates the original image
+ * @param url indicates the target url
+ * @return result.
+ */
+- (BOOL)applyMap:(nonnull UIImage *)map
+        forImage:(nonnull UIImage *)image
+      andWriteAt:(nonnull NSURL *)url;
+
+/*!
+ * @brief extract properties of image at URL
+ * @param url indicates image file URL
+ * @return NSDictionary with obvious format
+ */
+- (nullable NSDictionary *)commonPropertiesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief extract properties of image at URL

@@ -29,11 +29,12 @@
 @property (weak, nonatomic) IBOutlet UIImageView *exImageView;
 @property (weak, nonatomic) IBOutlet UILabel *exKeyLabel;
 @property (weak, nonatomic) IBOutlet UIButton *exportBtn;
+@property (weak, nonatomic) IBOutlet UIButton *mapBtn;
 @property(nonatomic) NSURL *URL;
 @property(nonatomic) UIImage *image;
 
-@property(nonatomic) UIImage *exImage;
-@property(nonatomic) NSString *exKey;
+@property(nonatomic) NSDictionary <NSString *, UIImage*> *exImages;
+@property(nonatomic) NSUInteger exImageNumber;
 
 @property(nonatomic) OKMetaParam *meta;
 @property(nonatomic) NSDictionary *params;
@@ -74,22 +75,12 @@
     _meta = [_imageMetadator fullMetaParamsFromImageAtURL:_URL];
     _params = [_imageMetadator propertiesFromImageAtURL:_URL];
     
-    _exImage = [_imageMetadator disparityImageFromImageAtURL:_URL];
-    if (_exImage) {
-        _exKey = CFS(kCGImageAuxiliaryDataTypeDisparity);
-    }
-    else {
-        _exImage = [_imageMetadator depthImageFromImageAtURL:_URL];
-        if (_exImage) {
-            _exKey = PP(GDepth,Data);
-        }
-        else {
-            _exImage = [_imageMetadator dataImageFromImageAtURL:_URL];
-            if (_exImage) {
-                _exKey = PP(GImage,Data);
-            }
-        }
-    }
+    NSMutableDictionary *exImages = [NSMutableDictionary new];
+    
+    [exImages addEntriesFromDictionary:[_imageMetadator auxImagesFromImageAtURL:_URL]];
+    [exImages addEntriesFromDictionary:[_imageMetadator dataImagesFromImageAtURL:_URL]];
+    
+    _exImages = [exImages copy];
     
     CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
     //NSLog(@"Metadata : \n %@", metadata);
@@ -128,11 +119,13 @@
 {
     _imageView.image = _image;
     
-    _exBtn.hidden = _exImage == nil;
-    _exView.hidden = _exImage == nil;
-    _exImageView.image = _exImage;
-    _exKeyLabel.text = _exKey;
-    _exportBtn.hidden = _exImage == nil;
+    _exBtn.hidden = _exImages.count == 0;
+    _exView.hidden = _exImages.count == 0;
+    _exportBtn.hidden = _exImages.count == 0;
+    
+    _exImageView.image = _exImages.allValues[_exImageNumber];
+    _exKeyLabel.text = _exImages.allKeys[_exImageNumber];
+    
     [_exportBtn setBackgroundImage:nil forState:UIControlStateNormal];
     
     [_metaView setText:[[self printMetaDictionary] description]];
@@ -318,7 +311,7 @@
 {
     NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
 
-    NSData *imageData = UIImageJPEGRepresentation(_exImage, 1.0);
+    NSData *imageData = UIImageJPEGRepresentation(_exImages.allValues[_exImageNumber], 1.0);
     [imageData writeToURL:tempURL atomically:YES];
 
     [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
@@ -347,6 +340,44 @@
                                                                  fromImage:(_imageMetadator != nil)
                                                                       pano:panoDict];
     [self presentViewController:panoVC animated:YES completion:NULL];
+}
+
+- (IBAction)mapAction:(id)sender
+{
+    NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
+    if ([_imageMetadator applyMap:_exImages.allValues[_exImageNumber] forImage:_image andWriteAt:tempURL])
+    {
+        [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
+         {
+             [self showResult:success];
+         }];
+    }
+}
+
+- (IBAction)exImageSwipe:(UISwipeGestureRecognizer *)gr
+{
+    if(gr.direction == UISwipeGestureRecognizerDirectionLeft)
+    {
+        if (_exImageNumber == 0) {
+            _exImageNumber = _exImages.count - 1;
+        }
+        else {
+            _exImageNumber --;
+        }
+    }
+    else if (gr.direction == UISwipeGestureRecognizerDirectionRight)
+    {
+        if (_exImageNumber == _exImages.count - 1) {
+            _exImageNumber = 0;
+        }
+        else {
+            _exImageNumber ++;
+        }
+    }
+    
+    _exImageView.image = _exImages.allValues[_exImageNumber];
+    _exImageView.contentMode = UIViewContentModeScaleAspectFit;
+    _exKeyLabel.text = _exImages.allKeys[_exImageNumber];
 }
 
 - (void)showResult:(BOOL)success
