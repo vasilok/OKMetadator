@@ -105,32 +105,41 @@
 - (nullable UIImage *)imageFromImageSource:(CGImageSourceRef)source withAuxType:(CFStringRef)type
 {
     NSDictionary *depthDict = [self auxDictionaryFromSource:source withType:type];
-    if (depthDict) {
-        
+    if (depthDict)
+    {
         NSError *error;
-        AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthDict
-                                                                              error:&error];
+        CIImage *ciImage;
         
-        if (depthData == nil) {
-            // try change format
-            NSMutableDictionary *updDict = [depthDict mutableCopy];
-            NSMutableDictionary  *descr = [updDict[CFS(AUX_INFO)] mutableCopy];
-            descr[AUX_PIXEL_FORMAT] = @(kCVPixelFormatType_DisparityFloat16);
-            updDict[CFS(AUX_INFO)] = [descr copy];
-            
-            depthData = [AVDepthData depthDataFromDictionaryRepresentation:updDict
-                                                                     error:&error];
-            
+        if ((type == AUX_DISPARITY) || (type == AUX_DEPTH))
+        {
+            AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthDict
+                                                                                  error:&error];
+        
             if (depthData == nil) {
                 os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source with error %@", error);
             }
+            
+            if (depthData.depthDataType != kCVPixelFormatType_DisparityFloat16) {
+                depthData = [depthData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat16];
+            }
+            
+            ciImage = [CIImage imageWithDepthData:depthData];
+        }
+        else if (@available(iOS 12.0, *)) {
+        
+            AVPortraitEffectsMatte *matteData = [AVPortraitEffectsMatte portraitEffectsMatteFromDictionaryRepresentation:depthDict
+                                                                                                                   error:&error];
+            if (matteData == nil) {
+                os_log_error(OS_LOG_DEFAULT, "Could not create matte data from source with error %@", error);
+            }
+            
+            if (matteData.pixelFormatType != kCVPixelFormatType_OneComponent8) {
+                os_log_error(OS_LOG_DEFAULT, "Matte data has invalid pixel format !");
+            }
+            
+            ciImage = [CIImage imageWithPortaitEffectsMatte:matteData];
         }
         
-        if (depthData.depthDataType != kCVPixelFormatType_DisparityFloat16) {
-            depthData = [depthData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat16];
-        }
-        
-        CIImage *ciImage = [CIImage imageWithDepthData:depthData];
         CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
         return [UIImage imageWithCGImage:cgImage];
     }
@@ -164,35 +173,11 @@
     if (@available(iOS 12.0, *)) {
         UIImage *matteImage = [self imageFromImageSource:source withAuxType:AUX_MATTE];
         if (matteImage) {
-            matteImage = [self rescaleMatte:matteImage];
             result[CFS(AUX_MATTE)] = matteImage;
         }
     }
     
     return result;
-}
-
-- (UIImage *)rescaleMatte:(UIImage *)image
-{
-    CIImage *ciimage = [CIImage imageWithCGImage:image.CGImage];
-    CIFilter *cropFilter = [CIFilter filterWithName:@"CICrop"];
-    CIVector *cropRect = [CIVector vectorWithX:0 Y:0 Z:image.size.width/2.0 W:image.size.height];
-    [cropFilter setValue:ciimage forKey:@"inputImage"];
-    [cropFilter setValue:cropRect forKey:@"inputRectangle"];
-    
-    ciimage = [cropFilter outputImage];
-    
-    CIFilter *resizeFilter = [CIFilter filterWithName:@"CILanczosScaleTransform"];
-    [resizeFilter setValue:ciimage forKey:@"inputImage"];
-    [resizeFilter setValue:[NSNumber numberWithFloat:2.0f] forKey:@"inputAspectRatio"];
-    
-    ciimage = [resizeFilter outputImage];
-    
-    CGImageRef cgImg = [[CIContext context] createCGImage:ciimage fromRect:[ciimage extent]];
-    UIImage *returnedImage = [UIImage imageWithCGImage:cgImg scale:1.0f orientation:UIImageOrientationUp];
-    CGImageRelease(cgImg);
-    
-    return returnedImage;
 }
 
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
