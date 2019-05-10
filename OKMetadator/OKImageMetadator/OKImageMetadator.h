@@ -67,18 +67,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief make CIImage depth map from aux metadata
+ * @brief extract images from auxiliary metadata
  * @param url indicates image file URL
- * @return CIImage
+ * @return NSDictionary with format : {aux type : UIImage}
  */
-- (nullable CIImage *)disparityCIImageFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief make UIImage depth map from aux metadata
- * @param url indicates image file URL
- * @return UIImage
- */
-- (nullable UIImage *)disparityImageFromImageAtURL:(nonnull NSURL *)url;
+- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief Make "Portrait" image from image with depth map. Sync.
@@ -101,6 +94,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)applyMap:(nonnull UIImage *)map
         forImage:(nonnull UIImage *)image
       andWriteAt:(nonnull NSURL *)url;
+
+/*!
+ * @brief extract properties of image at URL
+ * @param url indicates image file URL
+ * @return NSDictionary with obvious format
+ */
+- (nullable NSDictionary *)commonPropertiesFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
  * @brief extract properties of image at URL

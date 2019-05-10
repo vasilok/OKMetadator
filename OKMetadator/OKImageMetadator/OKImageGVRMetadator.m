@@ -88,39 +88,7 @@
     return [dParams copy];
 }
 
-- (nullable CIImage *)depthCIImageFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    UIImage *image = [self depthImageFromImageAtURL:url];
-    
-    return [CIImage imageWithCGImage:image.CGImage];
-}
-
-- (nullable UIImage *)depthImageFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    OKMetaParam *metaparam = [self metaParamsFromImageAtURL:url];
-    
-    if (metaparam[GDepthNamespace]) {
-        
-        return [self gImageFromString:metaparam[GDepthNamespace][DP(Data)]];
-    }
-    
-    return nil;
-}
-
-- (nullable CIImage *)dataCIImageFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    UIImage *image = [self depthImageFromImageAtURL:url];
-    
-    return [CIImage imageWithCGImage:image.CGImage];
-}
-
-- (nullable UIImage *)dataImageFromImageAtURL:(nonnull NSURL *)url
+- (nullable NSDictionary *)dataImagesFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
     
@@ -128,7 +96,18 @@
     
     if (metaparam[GoogleNamespace]) {
         
-        return [self gImageFromString:metaparam[GoogleNamespace][PP(GImage,Data)]];
+        NSMutableDictionary *result = [NSMutableDictionary new];
+        
+        UIImage *gImage = [self gImageFromString:metaparam[GoogleNamespace][PP(GImage,Data)]];
+        if (gImage) {
+            result[PP(GImage,Data)] = gImage;
+        }
+        UIImage *dImage = [self gImageFromString:metaparam[GDepthNamespace][DP(Data)]];
+        if (dImage) {
+            result[DP(Data)] = dImage;
+        }
+        
+        return result;
     }
     
     return nil;

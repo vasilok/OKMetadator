@@ -70,11 +70,6 @@
     NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
     if (disparity) {
         [aux setObject:disparity forKey:CFS(AUX_DISPARITY)];
-        
-        NSData *imageData = disparity[CFS(kCGImageAuxiliaryDataInfoData)];
-        //NSData *imageData = [[NSData alloc] initWithBase64EncodedString:imageString options:NSDataBase64DecodingIgnoreUnknownCharacters];
-        UIImage *i = [UIImage imageWithData:imageData];
-        NSLog(@"D Image %@", i);
     }
     
     if (@available(iOS 12.0, *)) {
@@ -107,7 +102,43 @@
     return [dict copy];
 }
 
-- (nullable CIImage *)disparityCIImageFromImageAtURL:(nonnull NSURL *)url
+- (nullable UIImage *)imageFromImageSource:(CGImageSourceRef)source withAuxType:(CFStringRef)type
+{
+    NSDictionary *depthDict = [self auxDictionaryFromSource:source withType:type];
+    if (depthDict) {
+        
+        NSError *error;
+        AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthDict
+                                                                              error:&error];
+        
+        if (depthData == nil) {
+            // try change format
+            NSMutableDictionary *updDict = [depthDict mutableCopy];
+            NSMutableDictionary  *descr = [updDict[CFS(AUX_INFO)] mutableCopy];
+            descr[AUX_PIXEL_FORMAT] = @(kCVPixelFormatType_DisparityFloat16);
+            updDict[CFS(AUX_INFO)] = [descr copy];
+            
+            depthData = [AVDepthData depthDataFromDictionaryRepresentation:updDict
+                                                                     error:&error];
+            
+            if (depthData == nil) {
+                os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source with error %@", error);
+            }
+        }
+        
+        if (depthData.depthDataType != kCVPixelFormatType_DisparityFloat16) {
+            depthData = [depthData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat16];
+        }
+        
+        CIImage *ciImage = [CIImage imageWithDepthData:depthData];
+        CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
+        return [UIImage imageWithCGImage:cgImage];
+    }
+    
+    return nil;
+}
+
+- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
     
@@ -118,33 +149,50 @@
         return nil;
     }
     
-    NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
-    if (disparity) {
-        
-        NSError *error;
-        AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:disparity
-                                                                              error:&error];
-        
-        if (depthData == nil) {
-            os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source at URL: %@ with error %@", url, error);
-        }
-        
-        return [CIImage imageWithDepthData:depthData];
+    NSMutableDictionary *result = [NSMutableDictionary new];
+    
+    UIImage *disparityImage = [self imageFromImageSource:source withAuxType:AUX_DISPARITY];
+    if (disparityImage) {
+        result[CFS(AUX_DISPARITY)] = disparityImage;
     }
     
-    return nil;
+    UIImage *depthImage = [self imageFromImageSource:source withAuxType:AUX_DEPTH];
+    if (depthImage) {
+        result[CFS(AUX_DEPTH)] = depthImage;
+    }
+    
+    if (@available(iOS 12.0, *)) {
+        UIImage *matteImage = [self imageFromImageSource:source withAuxType:AUX_MATTE];
+        if (matteImage) {
+            matteImage = [self rescaleMatte:matteImage];
+            result[CFS(AUX_MATTE)] = matteImage;
+        }
+    }
+    
+    return result;
 }
 
-- (nullable UIImage *)disparityImageFromImageAtURL:(nonnull NSURL *)url
+- (UIImage *)rescaleMatte:(UIImage *)image
 {
-    CIImage *ciImage = [self disparityCIImageFromImageAtURL:url];
-    if (ciImage)
-    {
-        CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
-        return [UIImage imageWithCGImage:cgImage];
-    }
+    CIImage *ciimage = [CIImage imageWithCGImage:image.CGImage];
+    CIFilter *cropFilter = [CIFilter filterWithName:@"CICrop"];
+    CIVector *cropRect = [CIVector vectorWithX:0 Y:0 Z:image.size.width/2.0 W:image.size.height];
+    [cropFilter setValue:ciimage forKey:@"inputImage"];
+    [cropFilter setValue:cropRect forKey:@"inputRectangle"];
     
-    return nil;
+    ciimage = [cropFilter outputImage];
+    
+    CIFilter *resizeFilter = [CIFilter filterWithName:@"CILanczosScaleTransform"];
+    [resizeFilter setValue:ciimage forKey:@"inputImage"];
+    [resizeFilter setValue:[NSNumber numberWithFloat:2.0f] forKey:@"inputAspectRatio"];
+    
+    ciimage = [resizeFilter outputImage];
+    
+    CGImageRef cgImg = [[CIContext context] createCGImage:ciimage fromRect:[ciimage extent]];
+    UIImage *returnedImage = [UIImage imageWithCGImage:cgImg scale:1.0f orientation:UIImageOrientationUp];
+    CGImageRelease(cgImg);
+    
+    return returnedImage;
 }
 
 - (BOOL)applyMap:(nonnull UIImage *)map
@@ -160,64 +208,164 @@
 {
     NSAssert(map && image && url, @"Unexpected NIL!");
     
-    NSDictionary *flatDataDict;
-    NSError *error;
-    
-    AVDepthData *data = [AVDepthData depthDataFromDictionaryRepresentation:flatDataDict error:&error];
-    if (data == nil) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create flat deapth data with error %@", error);
-        return NO;
-    }
-    
     CVPixelBufferRef pb = [self pixelBufferFromCGImage:map.CGImage];
     if (pb == NULL) {
         os_log_error(OS_LOG_DEFAULT, "Could not create Pixel Buffer from map");
         return NO;
     }
     
-    AVDepthData *resultData = [data depthDataByReplacingDepthDataMapWithPixelBuffer:pb error:&error];
-    if (resultData == NULL) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create depth data with error %@", error);
+    NSDictionary *diparityMeta = [self disparityMetadataWithPixelBuffer:pb];
+    NSDictionary *disparityProps = [self disparityPropertiesWith:map image:image];
+    
+    NSError *error;
+    AVDepthData *avData = [AVDepthData depthDataFromDictionaryRepresentation:diparityMeta error:&error];
+    if (avData == nil) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create flat deapth data with error %@", error);
         return NO;
     }
     
-    NSDictionary *diparityDict = [resultData dictionaryRepresentationForAuxiliaryDataType:nil];
-    if (diparityDict == NULL) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create representation from disparity data");
+    avData = [avData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat32];
+    
+    NSString *type = CFS(AUX_DISPARITY);
+    NSDictionary *avDict = [avData dictionaryRepresentationForAuxiliaryDataType:&type];
+    
+    AVDepthData *portraitData = [avData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DepthFloat16];
+    NSString *typeP = CFS(AUX_MATTE);
+    NSDictionary *pDict = [portraitData dictionaryRepresentationForAuxiliaryDataType:&typeP];
+    
+    
+    BOOL result = YES;
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source from image");
         return NO;
     }
     
-    BOOL result = [self processImage:image properties:nil meta:nil aux:@{CFS(AUX_DISPARITY) : diparityDict} atURL:url];
+    NSMutableData *dest_data = [NSMutableData data];
+    CFStringRef UTI = CGImageSourceGetType(source);
+    
+    CGImageDestinationRef destination = CGImageDestinationCreateWithData((CFMutableDataRef)dest_data,UTI,1,NULL);
+    if(destination == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image destination");
+        CFRelease(source);
+        return NO;
+    }
+    
+    CGImageDestinationAddImage(destination, image.CGImage, nil/*(CFDictionaryRef)disparityProps*/);
+    CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DISPARITY, (CFDictionaryRef)avDict);
+    CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_MATTE, (CFDictionaryRef)pDict);
+   
+    result = CGImageDestinationFinalize(destination);
+    if (result == NO)
+    {
+        CFRelease(destination);
+        CFRelease(source);
+        return NO;
+    }
+    
+    result = [dest_data writeToURL:url atomically:YES];
+    if (result == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not write image data at URL: %@", url);
+    }
+    
+    CFRelease(destination);
+    CFRelease(source);
     
     return result;
 }
 
-- (NSDictionary *)flatDisparityDictionaryWithSize:(CGSize)size
+- (NSDictionary *)disparityDictionaryWithPixelBuffer:(CVPixelBufferRef)pb
 {
-//    kCGImageAuxiliaryDataInfoData = <...> length=1769472;
-//    kCGImageAuxiliaryDataInfoDataDescription =     {
-//        BytesPerRow = 2304;
-//        Height = 768;
-//        PixelFormat = 1717856627;
-//        Width = 576;
-//    };
-//    kCGImageAuxiliaryDataInfoMetadata =     {
-//        "http://ns.apple.com/ImageIO/1.0/" =         {
-//            "iio:hasXMP" = True;
-//        };
-//        "http://ns.apple.com/depthData/1.0/" =         {
-//            "depthData:Accuracy" = relative;
-//            "depthData:Filtered" = True;
-//            "depthData:Quality" = high;
-//        };
-//    };
+    size_t width = CVPixelBufferGetWidth(pb);
+    size_t height = CVPixelBufferGetHeight(pb);
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pb);
+    OSType format = CVPixelBufferGetPixelFormatType(pb);
+    size_t size = CVPixelBufferGetDataSize(pb);
     
-    return @{};
+   
+//    kCVPixelFormatType_DisparityFloat16 = 'hdis', /* IEEE754-2008 binary16 (half float), describing the normalized shift when comparing two images. Units are 1/meters: ( pixelShift / (pixelFocalLength * baselineInMeters) ) */
+//    kCVPixelFormatType_DisparityFloat32 = 'fdis', /* IEEE754-2008 binary32 float, describing the normalized shift when comparing two images. Units are 1/meters: ( pixelShift / (pixelFocalLength * baselineInMeters) ) */
+//    kCVPixelFormatType_DepthFloat16 = 'hdep', /* IEEE754-2008 binary16 (half float), describing the depth (distance to an object) in meters */
+//    kCVPixelFormatType_DepthFloat32 = 'fdep', /* IEEE754-2008 binary32 float, describing the depth (distance to an object) in meters */
+    
+    
+    CVPixelBufferLockBaseAddress(pb, 0);
+    void *addr = CVPixelBufferGetBaseAddress(pb);
+    NSData *pbData = [NSData dataWithBytes:addr length:size];
+    CVPixelBufferUnlockBaseAddress(pb, 0);
+    
+    return @{
+             CFS(AUX_DATA) : pbData,
+             CFS(AUX_INFO) : @{
+                     AUX_WIDTH : @(width),
+                     AUX_HEIGHT : @(height),
+                     AUX_BYTES_PER_ROW : @(bytesPerRow),
+                     AUX_PIXEL_FORMAT : @(1717856627)//@(format)
+                                },
+             CFS(AUX_META) : @{
+                     AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
+                     AppleDepthNamespace : @{ PP(ADepth, Accuracy) : @"relative",
+                                              PP(ADepth, Filtered) : @YES,
+                                              PP(ADepth, Quality) : @"high"
+                                              }
+                            }
+             };
 }
 
-- (NSDictionary *)flatDisparityMetadataWithSize:(CGSize)size
+- (NSDictionary *)disparityPropertiesWith:(UIImage *)map image:(UIImage *)image
 {
-    NSMutableDictionary *flatDict = [[self flatDisparityDictionaryWithSize:size] mutableCopy];
+//    "{ExifAux}" =     {
+//        Regions =         {
+//            HeightAppliedTo = 3088;
+//            RegionList =             (
+//                                      {
+//                                          AngleInfoRoll = 0;
+//                                          AngleInfoYaw = 315;
+//                                          ConfidenceLevel = 998;
+//                                          FaceID = 5;
+//                                          Height = "0.3515025973320007";
+//                                          Timestamp = 2147483647;
+//                                          Type = Face;
+//                                          Width = "0.4688082933425903";
+//                                          X = "0.4659412503242493";
+//                                          Y = "0.6131398677825928";
+//                                      },
+//                                      {
+//                                          Height = "0.3515025973320007";
+//                                          Type = Focus;
+//                                          Width = "0.4688082933425903";
+//                                          X = "0.4659412503242493";
+//                                          Y = "0.6131398677825928";
+//                                      }
+//                                      );
+//            WidthAppliedTo = 2316;
+//        };
+    
+    return @{ @"ExifAux" : @{
+                      @"Regions" : @{
+                              @"HeightAppliedTo" : @(image.size.height),
+                              @"WidthAppliedTo" : @(image.size.width),
+                              }
+                      }
+            };
+    
+//    return @{CFS(kCGImagePropertyFileContentsDictionary) : @{
+//                     CFS(kCGImagePropertyImages) : @{
+//                             CFS(kCGImagePropertyAuxiliaryDataType) : CFS(kCGImageAuxiliaryDataTypeDisparity),
+//                             CFS(kCGImagePropertyWidth) : @(map.size.width),
+//                             CFS(kCGImagePropertyHeight) : @(map.size.height),
+//                           },
+//                     CFS(kCGImagePropertyWidth) : @(image.size.width),
+//                     CFS(kCGImagePropertyHeight) : @(image.size.height),
+//                     }};
+}
+
+- (NSDictionary *)disparityMetadataWithPixelBuffer:(CVPixelBufferRef)pb
+{
+    NSMutableDictionary *flatDict = [[self disparityDictionaryWithPixelBuffer:pb] mutableCopy];
     
     NSDictionary *metaDict = flatDict[CFS(AUX_META)];
     
@@ -227,6 +375,18 @@
     {
         flatDict[CFS(AUX_META)] = CFBridgingRelease(meta);
     }
+    
+    
+    // TEST
+//    NSError *error;
+//    AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:flatDict
+//                                                                          error:&error];
+//
+//    if (depthData == nil) {
+//        os_log_error(OS_LOG_DEFAULT, "TEST AVDepthData with error %@", error);
+//    }
+    
+    
     
     return [flatDict copy];
 }
@@ -283,6 +443,24 @@
     return [full copy];
 }
 
+- (nullable NSDictionary *)commonPropertiesFromImageAtURL:(nonnull NSURL *)url
+{
+    NSAssert(url, @"Unexpected NIL!");
+    
+    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+    if (source == NULL)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
+        return nil;
+    }
+    
+    NSDictionary *dict = CFBridgingRelease(CGImageSourceCopyProperties(source, NULL));
+    
+    CFRelease(source);
+    
+    return dict;
+}
+
 - (nullable NSDictionary *)propertiesFromImageAtURL:(nonnull NSURL *)url
 {
     NSAssert(url, @"Unexpected NIL!");
@@ -293,6 +471,8 @@
         os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
         return nil;
     }
+    NSDictionary *commonDict = CFBridgingRelease(CGImageSourceCopyProperties(source, NULL));
+    NSLog(@"Common %@:\n", commonDict);
     
     NSDictionary *dict = CFBridgingRelease(CGImageSourceCopyPropertiesAtIndex(source, 0, NULL));
     
