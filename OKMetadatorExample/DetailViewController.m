@@ -349,6 +349,14 @@
 
 - (IBAction)mapAction:(id)sender
 {
+    NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
+    if ([_imageMetadator applyMap:_exImages.allValues[_exImageNumber] forImage:_image andWriteAt:tempURL])
+    {
+        [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
+         {
+             [self showResult:success];
+         }];
+    }
 }
 
 - (IBAction)exImageSwipe:(UISwipeGestureRecognizer *)gr

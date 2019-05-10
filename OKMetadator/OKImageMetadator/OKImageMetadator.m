@@ -193,31 +193,12 @@
 {
     NSAssert(map && image && url, @"Unexpected NIL!");
     
-    CVPixelBufferRef pb = [self pixelBufferFromCGImage:map.CGImage];
-    if (pb == NULL) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create Pixel Buffer from map");
+    NSDictionary *matteRepresentation = [self matteRepresentationWithImage:map];
+    NSDictionary *disparityRepresentation = [self disparityRepresentationWithImage:map];
+    
+    if (!matteRepresentation && !disparityRepresentation) {
         return NO;
     }
-    
-    NSDictionary *diparityMeta = [self disparityMetadataWithPixelBuffer:pb];
-    NSDictionary *disparityProps = [self disparityPropertiesWith:map image:image];
-    
-    NSError *error;
-    AVDepthData *avData = [AVDepthData depthDataFromDictionaryRepresentation:diparityMeta error:&error];
-    if (avData == nil) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create flat deapth data with error %@", error);
-        return NO;
-    }
-    
-    avData = [avData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat32];
-    
-    NSString *type = CFS(AUX_DISPARITY);
-    NSDictionary *avDict = [avData dictionaryRepresentationForAuxiliaryDataType:&type];
-    
-    AVDepthData *portraitData = [avData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DepthFloat16];
-    NSString *typeP = CFS(AUX_MATTE);
-    NSDictionary *pDict = [portraitData dictionaryRepresentationForAuxiliaryDataType:&typeP];
-    
     
     BOOL result = YES;
     CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
@@ -239,8 +220,15 @@
     }
     
     CGImageDestinationAddImage(destination, image.CGImage, nil/*(CFDictionaryRef)disparityProps*/);
-    CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DISPARITY, (CFDictionaryRef)avDict);
-    CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_MATTE, (CFDictionaryRef)pDict);
+    
+    if (disparityRepresentation) {
+        CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DISPARITY, (CFDictionaryRef)disparityRepresentation);
+    }
+    if (matteRepresentation) {
+        if (@available(iOS 12.0, *)) {
+            CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_MATTE, (CFDictionaryRef)matteRepresentation);
+        }
+    }
     
     result = CGImageDestinationFinalize(destination);
     if (result == NO)
@@ -262,25 +250,96 @@
     return result;
 }
 
-- (NSDictionary *)disparityDictionaryWithPixelBuffer:(CVPixelBufferRef)pb
+- (NSDictionary *)matteRepresentationWithImage:(UIImage *)image
 {
-    size_t width = CVPixelBufferGetWidth(pb);
-    size_t height = CVPixelBufferGetHeight(pb);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pb);
-    OSType format = CVPixelBufferGetPixelFormatType(pb);
-    size_t size = CVPixelBufferGetDataSize(pb);
+    NSError *error;
+    NSDictionary *matteMeta = [self matteMetadataWithImage:image];
     
+    if (!matteMeta) {
+        return nil;
+    }
     
-    //    kCVPixelFormatType_DisparityFloat16 = 'hdis', /* IEEE754-2008 binary16 (half float), describing the normalized shift when comparing two images. Units are 1/meters: ( pixelShift / (pixelFocalLength * baselineInMeters) ) */
-    //    kCVPixelFormatType_DisparityFloat32 = 'fdis', /* IEEE754-2008 binary32 float, describing the normalized shift when comparing two images. Units are 1/meters: ( pixelShift / (pixelFocalLength * baselineInMeters) ) */
-    //    kCVPixelFormatType_DepthFloat16 = 'hdep', /* IEEE754-2008 binary16 (half float), describing the depth (distance to an object) in meters */
-    //    kCVPixelFormatType_DepthFloat32 = 'fdep', /* IEEE754-2008 binary32 float, describing the depth (distance to an object) in meters */
+    NSDictionary *result = nil;
     
+    if (@available(iOS 12.0, *)) {
+        AVPortraitEffectsMatte *matteData = [AVPortraitEffectsMatte portraitEffectsMatteFromDictionaryRepresentation:matteMeta
+                                                                                                               error:&error];
+        
+        if (matteData == nil) {
+            os_log_error(OS_LOG_DEFAULT, "Could not create matte data with error %@", error);
+            return nil;
+        }
+        
+        NSString *typeP = CFS(AUX_MATTE);
+        result = [matteData dictionaryRepresentationForAuxiliaryDataType:&typeP];
+    }
     
-    CVPixelBufferLockBaseAddress(pb, 0);
-    void *addr = CVPixelBufferGetBaseAddress(pb);
+    return result;
+}
+
+- (NSDictionary *)disparityRepresentationWithImage:(UIImage *)image
+{
+    NSError *error;
+    NSDictionary *disparityMeta = [self disparityMetadataWithImage:image];
+    
+    if (!disparityMeta) {
+        return nil;
+    }
+    
+    AVDepthData *disparityData = [AVDepthData depthDataFromDictionaryRepresentation:disparityMeta error:&error];
+    if (disparityData == nil) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create disparity data with error %@", error);
+        return nil;
+    }
+    
+    NSString *type = CFS(AUX_DISPARITY);
+    return [disparityData dictionaryRepresentationForAuxiliaryDataType:&type];
+}
+
+- (NSDictionary *)matteMetadataWithImage:(UIImage *)image
+{
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
+    CVPixelBufferRef pxbuffer = NULL;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
+                                          kCVPixelFormatType_OneComponent8, (__bridge CFDictionaryRef)options, &pxbuffer);
+    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSParameterAssert(pxdata != NULL);
+    
+    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
+    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 8, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
+    NSParameterAssert(context);
+    CGContextConcatCTM(context, CGAffineTransformIdentity);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
+    CGColorSpaceRelease(grayColorSpace);
+    CGContextRelease(context);
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    size_t width = CVPixelBufferGetWidth(pxbuffer);
+    size_t height = CVPixelBufferGetHeight(pxbuffer);
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
+    OSType format = kCVPixelFormatType_OneComponent8;
+    size_t size = CVPixelBufferGetDataSize(pxbuffer);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *addr = CVPixelBufferGetBaseAddress(pxbuffer);
     NSData *pbData = [NSData dataWithBytes:addr length:size];
-    CVPixelBufferUnlockBaseAddress(pb, 0);
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    CFRelease(pxbuffer);
+    
+    CGImageMetadataRef meta = [self metadataFromMetaParams:@{
+                                                             AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
+                                                             AppleMatteNamespace : @{ PP(AMatte, @"PortraitEffectsMatteVersion") : @(65536) }
+                                                             }];
+    
+    if (!meta) {
+        return nil;
+    }
     
     return @{
              CFS(AUX_DATA) : pbData,
@@ -288,118 +347,70 @@
                      AUX_WIDTH : @(width),
                      AUX_HEIGHT : @(height),
                      AUX_BYTES_PER_ROW : @(bytesPerRow),
-                     AUX_PIXEL_FORMAT : @(1717856627)//@(format)
+                     AUX_PIXEL_FORMAT : @(format)
                      },
-             CFS(AUX_META) : @{
-                     AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
-                     AppleDepthNamespace : @{ PP(ADepth, Accuracy) : @"relative",
-                                              PP(ADepth, Filtered) : @YES,
-                                              PP(ADepth, Quality) : @"high"
-                                              }
-                     }
+             CFS(AUX_META) : CFBridgingRelease(meta)
              };
 }
 
-- (NSDictionary *)disparityPropertiesWith:(UIImage *)map image:(UIImage *)image
+- (NSDictionary *)disparityMetadataWithImage:(UIImage *)image
 {
-    //    "{ExifAux}" =     {
-    //        Regions =         {
-    //            HeightAppliedTo = 3088;
-    //            RegionList =             (
-    //                                      {
-    //                                          AngleInfoRoll = 0;
-    //                                          AngleInfoYaw = 315;
-    //                                          ConfidenceLevel = 998;
-    //                                          FaceID = 5;
-    //                                          Height = "0.3515025973320007";
-    //                                          Timestamp = 2147483647;
-    //                                          Type = Face;
-    //                                          Width = "0.4688082933425903";
-    //                                          X = "0.4659412503242493";
-    //                                          Y = "0.6131398677825928";
-    //                                      },
-    //                                      {
-    //                                          Height = "0.3515025973320007";
-    //                                          Type = Focus;
-    //                                          Width = "0.4688082933425903";
-    //                                          X = "0.4659412503242493";
-    //                                          Y = "0.6131398677825928";
-    //                                      }
-    //                                      );
-    //            WidthAppliedTo = 2316;
-    //        };
-    
-    return @{ @"ExifAux" : @{
-                      @"Regions" : @{
-                              @"HeightAppliedTo" : @(image.size.height),
-                              @"WidthAppliedTo" : @(image.size.width),
-                              }
-                      }
-              };
-    
-    //    return @{CFS(kCGImagePropertyFileContentsDictionary) : @{
-    //                     CFS(kCGImagePropertyImages) : @{
-    //                             CFS(kCGImagePropertyAuxiliaryDataType) : CFS(kCGImageAuxiliaryDataTypeDisparity),
-    //                             CFS(kCGImagePropertyWidth) : @(map.size.width),
-    //                             CFS(kCGImagePropertyHeight) : @(map.size.height),
-    //                           },
-    //                     CFS(kCGImagePropertyWidth) : @(image.size.width),
-    //                     CFS(kCGImagePropertyHeight) : @(image.size.height),
-    //                     }};
-}
-
-- (NSDictionary *)disparityMetadataWithPixelBuffer:(CVPixelBufferRef)pb
-{
-    NSMutableDictionary *flatDict = [[self disparityDictionaryWithPixelBuffer:pb] mutableCopy];
-    
-    NSDictionary *metaDict = flatDict[CFS(AUX_META)];
-    
-    CGImageMetadataRef meta = [self metadataFromMetaParams:metaDict];
-    
-    if (meta)
-    {
-        flatDict[CFS(AUX_META)] = CFBridgingRelease(meta);
-    }
-    
-    
-    // TEST
-    //    NSError *error;
-    //    AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:flatDict
-    //                                                                          error:&error];
-    //
-    //    if (depthData == nil) {
-    //        os_log_error(OS_LOG_DEFAULT, "TEST AVDepthData with error %@", error);
-    //    }
-    
-    
-    
-    return [flatDict copy];
-}
-
-- (CVPixelBufferRef)pixelBufferFromCGImage:(CGImageRef)image{
-    
     NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
                              [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
                              [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
     CVPixelBufferRef pxbuffer = NULL;
-    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image), CGImageGetHeight(image),
-                                          kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)options, &pxbuffer);
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
+                                          kCVPixelFormatType_DisparityFloat16, (__bridge CFDictionaryRef)options, &pxbuffer);
     NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
     
     CVPixelBufferLockBaseAddress(pxbuffer, 0);
     void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
     NSParameterAssert(pxdata != NULL);
     
-    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image), CGImageGetHeight(image), 8, 4*CGImageGetWidth(image), rgbColorSpace, kCGImageAlphaNoneSkipFirst);
+    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
+    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 16, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
     NSParameterAssert(context);
     CGContextConcatCTM(context, CGAffineTransformIdentity);
-    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image), CGImageGetHeight(image)), image);
-    CGColorSpaceRelease(rgbColorSpace);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
+    CGColorSpaceRelease(grayColorSpace);
     CGContextRelease(context);
     CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
     
-    return pxbuffer;
+    size_t width = CVPixelBufferGetWidth(pxbuffer);
+    size_t height = CVPixelBufferGetHeight(pxbuffer);
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
+    OSType format = kCVPixelFormatType_DisparityFloat16;
+    size_t size = CVPixelBufferGetDataSize(pxbuffer);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *addr = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSData *pbData = [NSData dataWithBytes:addr length:size];
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    CFRelease(pxbuffer);
+    
+    CGImageMetadataRef meta = [self metadataFromMetaParams:@{
+                                                             AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
+                                                             AppleDepthNamespace : @{ PP(ADepth, Accuracy) : @"relative",
+                                                                                      PP(ADepth, Filtered) : @YES,
+                                                                                      PP(ADepth, Quality) : @"high"
+                                                                                      }
+                                                             }];
+    
+    if (!meta) {
+        return nil;
+    }
+    
+    return @{
+             CFS(AUX_DATA) : pbData,
+             CFS(AUX_INFO) : @{
+                     AUX_WIDTH : @(width),
+                     AUX_HEIGHT : @(height),
+                     AUX_BYTES_PER_ROW : @(bytesPerRow),
+                     AUX_PIXEL_FORMAT : @(format)
+                     },
+             CFS(AUX_META) : CFBridgingRelease(meta)
+             };
 }
 
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
