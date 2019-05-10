@@ -80,7 +80,10 @@
     [exImages addEntriesFromDictionary:[_imageMetadator auxImagesFromImageAtURL:_URL]];
     [exImages addEntriesFromDictionary:[_imageMetadator dataImagesFromImageAtURL:_URL]];
     
-    _exImages = [exImages copy];
+    if (exImages.count > 0)
+    {
+        _exImages = [exImages copy];
+    }
     
     CGImageMetadataRef metadata = [_imageMetadator metaFromImageAtURL:_URL];
     //NSLog(@"Metadata : \n %@", metadata);
