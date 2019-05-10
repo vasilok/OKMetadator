@@ -128,6 +128,8 @@
     
     _exImageView.image = _exImages.allValues[_exImageNumber];
     _exKeyLabel.text = _exImages.allKeys[_exImageNumber];
+    NSString *title = _exImages.allValues.count > 1 ? @"<- Ex Images ->" : @"Ex image";
+    [_exBtn setTitle:title forState:UIControlStateNormal];
     
     [_exportBtn setBackgroundImage:nil forState:UIControlStateNormal];
     
@@ -347,14 +349,6 @@
 
 - (IBAction)mapAction:(id)sender
 {
-    NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
-    if ([_imageMetadator applyMap:_exImages.allValues[_exImageNumber] forImage:_image andWriteAt:tempURL])
-    {
-        [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
-         {
-             [self showResult:success];
-         }];
-    }
 }
 
 - (IBAction)exImageSwipe:(UISwipeGestureRecognizer *)gr
