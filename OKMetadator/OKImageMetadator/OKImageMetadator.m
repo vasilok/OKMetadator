@@ -393,6 +393,10 @@
         
         NSDictionary *param = params[namespace];
         
+        if (param.allKeys.count == 0) {
+            continue;
+        }
+        
         CFErrorRef error;
         
         NSString *prefix = [[param.allKeys.firstObject componentsSeparatedByString:@":"] firstObject];
