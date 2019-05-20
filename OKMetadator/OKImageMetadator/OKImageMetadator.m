@@ -1050,14 +1050,4 @@ withProperties:(nullable NSDictionary *)props
     return [dateFormatter stringFromDate:localDate];
 }
 
-- (UIImage *)resize:(CGSize)size image:(UIImage *)image
-{
-    UIGraphicsBeginImageContextWithOptions(size, NO, image.scale);
-    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
-    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    return scaledImage;
-}
-
 @end

@@ -8,13 +8,11 @@
 
 #import "OKImageAuxMetadator.h"
 #import <os/log.h>
-// for depth data
-#import <AVFoundation/AVFoundation.h>
 #import "OKImageMetadator+Common.h"
 
-@interface OKImageMetadator ()
-- (UIImage *)resize:(CGSize)size image:(UIImage *)image;
-@end
+// for depth data
+#import <AVFoundation/AVFoundation.h>
+
 
 @implementation OKImageMetadator (OKImageAuxMetadator)
 
@@ -130,14 +128,14 @@
 
 - (BOOL)setPortraitToMeta:(_Nonnull CGMutableImageMetadataRef)meta
 {
-    CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)@"http://ns.adobe.com/exif/1.0/", (CFStringRef)@"exif", NULL);
-    CGImageMetadataTagRef tag = CGImageMetadataTagCreate((CFStringRef)@"http://ns.adobe.com/exif/1.0/",
-                                                         (CFStringRef)@"exif",
-                                                         (CFStringRef)@"CustomRendered",
+    CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AdobeExifNamespace, (CFStringRef)exif, NULL);
+    CGImageMetadataTagRef tag = CGImageMetadataTagCreate((CFStringRef)AdobeExifNamespace,
+                                                         (CFStringRef)exif,
+                                                         (CFStringRef)CustomRendered,
                                                          kCGImageMetadataTypeString,
                                                          (__bridge CFTypeRef)@(8));
     if (tag) {
-        CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)@"exif:CustomRendered", tag);
+        CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(exif, CustomRendered), tag);
         CFRelease(tag);
         
         return YES;

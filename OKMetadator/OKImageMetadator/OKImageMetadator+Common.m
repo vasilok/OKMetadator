@@ -175,6 +175,16 @@
     return YES;
 }
 
+- (UIImage *)resize:(CGSize)size image:(UIImage *)image
+{
+    UIGraphicsBeginImageContextWithOptions(size, NO, image.scale);
+    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return scaledImage;
+}
+
 #pragma Setups
 
 - (BOOL)setGoogleParams:(OKMetaParam *)params toMeta:(CGMutableImageMetadataRef)meta

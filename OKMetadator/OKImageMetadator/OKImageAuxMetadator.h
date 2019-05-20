@@ -67,7 +67,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param aux indicates aux params with @MetaFormat
  * @param destination indicates target image destination object
  */
-- (void)setAuxParams:(nullable NSDictionary *)aux toDestination:(_Nonnull CGImageDestinationRef)destination;
+- (void)setAuxParams:(nullable OKMetaParam *)aux toDestination:(_Nonnull CGImageDestinationRef)destination;
 
 /*!
  * @brief Setup aux metadata to image destination. Used in common flow

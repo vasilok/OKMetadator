@@ -29,6 +29,8 @@
                    withMetaParam:(nullable OKMetaParam *)param
                          copyOld:(BOOL)copyOld;
 
+- (nullable UIImage *)resize:(CGSize)size image:(nonnull UIImage *)image;
+
 @end
 
 

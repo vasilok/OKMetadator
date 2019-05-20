@@ -47,6 +47,11 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
 
+#define exif @"exif"
+#define CustomRendered @"CustomRendered"
+
+#define Qualifiers @"Qualifiers"
+
 // Auxiliarity
 #define AUX_DEPTH     kCGImageAuxiliaryDataTypeDepth
 #define AUX_DISPARITY kCGImageAuxiliaryDataTypeDisparity
@@ -161,7 +166,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define DateRate        @"DateRate"   // kbps
 
 #define OKAuxType  @"OKAuxType"
-#define Qualifiers @"Qualifiers"
+
 
 
 @interface OKMetadator : NSObject
