@@ -45,55 +45,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url;
 
 /*!
- * @brief extract auxiliary metadata of image at URL in friendly format
- * @param url indicates image file URL
- * @return NSDictionary with @MetaFormat
- */
-- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief extract all available metadata of image at URL in friendly format.
- * Including trivial metadata and auxiliary data
- * @param url indicates image file URL
- * @return NSDictionary with @MetaFormat
- */
-- (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
  * @brief extract XMP data of image at URL
  * @param url indicates image file URL
  * @return NSData
  */
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief extract images from auxiliary metadata
- * @param url indicates image file URL
- * @return NSDictionary with format : {aux type : UIImage}
- */
-- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url;
-
-/*!
- * @brief Make "Portrait" image from image with depth map. Sync.
- * @param map indicates the depth map (grayscale)
- * @param imageURL indicates the original image url
- * @param url indicates the target url
- * @return result.
- */
-- (BOOL)applyMap:(nonnull UIImage *)map
-      forImageAt:(nonnull NSURL *)imageURL
-      andWriteAt:(nonnull NSURL *)url;
-
-/*!
- * @brief Make "Portrait" image from image with depth map. Sync.
- * @param map indicates the depth map (grayscale)
- * @param image indicates the original image
- * @param url indicates the target url
- * @return result.
- */
-- (BOOL)applyMap:(nonnull UIImage *)map
-        forImage:(nonnull UIImage *)image
-      andWriteAt:(nonnull NSURL *)url;
 
 /*!
  * @brief extract properties of image at URL

@@ -8,8 +8,7 @@
 
 #import "OKImageMetadator.h"
 #import <os/log.h>
-// for depth data
-#import <AVFoundation/AVFoundation.h>
+#import "OKImageMetadator+Common.h"
 
 @implementation OKImageMetadator
 
@@ -49,369 +48,6 @@
     return metadata;
 }
 
-- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
-        return nil;
-    }
-    
-    NSMutableDictionary *aux = [NSMutableDictionary new];
-    
-    NSDictionary *depth = [self auxDictionaryFromSource:source withType:AUX_DEPTH];
-    if (depth) {
-        [aux setObject:depth forKey:CFS(AUX_DEPTH)];
-    }
-    
-    NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
-    if (disparity) {
-        [aux setObject:disparity forKey:CFS(AUX_DISPARITY)];
-    }
-    
-    if (@available(iOS 12.0, *)) {
-        NSDictionary *matte = [self auxDictionaryFromSource:source withType:AUX_MATTE];
-        if (matte) {
-            [aux setObject:matte forKey:CFS(AUX_MATTE)];
-        }
-    }
-    
-    CFRelease(source);
-    
-    if (aux.allKeys.count == 0) {
-        return nil;
-    }
-    
-    return [aux copy];
-}
-
-- (NSDictionary *)auxDictionaryFromSource:(CGImageSourceRef)source withType:(CFStringRef)type
-{
-    NSMutableDictionary *dict = [CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, type)) mutableCopy];
-    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:CFS(AUX_META)]);
-    
-    if (meta)
-    {
-        dict[CFS(AUX_META)] = [self metaParamsFromMetadata:meta];
-        CFRelease(meta);
-    }
-    
-    return [dict copy];
-}
-
-- (nullable UIImage *)imageFromImageSource:(CGImageSourceRef)source withAuxType:(CFStringRef)type
-{
-    NSDictionary *depthDict = [self auxDictionaryFromSource:source withType:type];
-    if (depthDict)
-    {
-        NSError *error;
-        CIImage *ciImage;
-        
-        if ((type == AUX_DISPARITY) || (type == AUX_DEPTH))
-        {
-            AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthDict
-                                                                                  error:&error];
-        
-            if (depthData == nil) {
-                os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source with error %@", error);
-            }
-            
-            if (depthData.depthDataType != kCVPixelFormatType_DisparityFloat16) {
-                depthData = [depthData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat16];
-            }
-            
-            ciImage = [CIImage imageWithDepthData:depthData];
-        }
-        else if (@available(iOS 12.0, *)) {
-        
-            AVPortraitEffectsMatte *matteData = [AVPortraitEffectsMatte portraitEffectsMatteFromDictionaryRepresentation:depthDict
-                                                                                                                   error:&error];
-            if (matteData == nil) {
-                os_log_error(OS_LOG_DEFAULT, "Could not create matte data from source with error %@", error);
-            }
-            
-            if (matteData.pixelFormatType != kCVPixelFormatType_OneComponent8) {
-                os_log_error(OS_LOG_DEFAULT, "Matte data has invalid pixel format !");
-            }
-            
-            ciImage = [CIImage imageWithPortaitEffectsMatte:matteData];
-        }
-        
-        CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
-        return [UIImage imageWithCGImage:cgImage];
-    }
-    
-    return nil;
-}
-
-- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
-        return nil;
-    }
-    
-    NSMutableDictionary *result = [NSMutableDictionary new];
-    
-    UIImage *disparityImage = [self imageFromImageSource:source withAuxType:AUX_DISPARITY];
-    if (disparityImage) {
-        result[CFS(AUX_DISPARITY)] = disparityImage;
-    }
-    
-    UIImage *depthImage = [self imageFromImageSource:source withAuxType:AUX_DEPTH];
-    if (depthImage) {
-        result[CFS(AUX_DEPTH)] = depthImage;
-    }
-    
-    if (@available(iOS 12.0, *)) {
-        UIImage *matteImage = [self imageFromImageSource:source withAuxType:AUX_MATTE];
-        if (matteImage) {
-            result[CFS(AUX_MATTE)] = matteImage;
-        }
-    }
-    
-    return result;
-}
-
-- (BOOL)applyMap:(nonnull UIImage *)map
-      forImageAt:(nonnull NSURL *)imageURL
-      andWriteAt:(nonnull NSURL *)url
-{
-    return NO;
-}
-
-- (BOOL)applyMap:(nonnull UIImage *)map
-        forImage:(nonnull UIImage *)image
-      andWriteAt:(nonnull NSURL *)url
-{
-    NSAssert(map && image && url, @"Unexpected NIL!");
-    
-    NSDictionary *matteRepresentation = [self matteRepresentationWithImage:map];
-    NSDictionary *disparityRepresentation = [self disparityRepresentationWithImage:map];
-    
-    if (!matteRepresentation && !disparityRepresentation) {
-        return NO;
-    }
-    
-    BOOL result = YES;
-    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source from image");
-        return NO;
-    }
-    
-    NSMutableData *dest_data = [NSMutableData data];
-    CFStringRef UTI = CGImageSourceGetType(source);
-    
-    CGImageDestinationRef destination = CGImageDestinationCreateWithData((CFMutableDataRef)dest_data,UTI,1,NULL);
-    if(destination == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image destination");
-        CFRelease(source);
-        return NO;
-    }
-    
-    CGImageDestinationAddImage(destination, image.CGImage, nil/*(CFDictionaryRef)disparityProps*/);
-    
-    if (disparityRepresentation) {
-        CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DISPARITY, (CFDictionaryRef)disparityRepresentation);
-    }
-    if (matteRepresentation) {
-        if (@available(iOS 12.0, *)) {
-            CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_MATTE, (CFDictionaryRef)matteRepresentation);
-        }
-    }
-    
-    result = CGImageDestinationFinalize(destination);
-    if (result == NO)
-    {
-        CFRelease(destination);
-        CFRelease(source);
-        return NO;
-    }
-    
-    result = [dest_data writeToURL:url atomically:YES];
-    if (result == NO)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not write image data at URL: %@", url);
-    }
-    
-    CFRelease(destination);
-    CFRelease(source);
-    
-    return result;
-}
-
-- (NSDictionary *)matteRepresentationWithImage:(UIImage *)image
-{
-    NSError *error;
-    NSDictionary *matteMeta = [self matteMetadataWithImage:image];
-    
-    if (!matteMeta) {
-        return nil;
-    }
-    
-    NSDictionary *result = nil;
-    
-    if (@available(iOS 12.0, *)) {
-        AVPortraitEffectsMatte *matteData = [AVPortraitEffectsMatte portraitEffectsMatteFromDictionaryRepresentation:matteMeta
-                                                                                                               error:&error];
-        
-        if (matteData == nil) {
-            os_log_error(OS_LOG_DEFAULT, "Could not create matte data with error %@", error);
-            return nil;
-        }
-        
-        NSString *typeP = CFS(AUX_MATTE);
-        result = [matteData dictionaryRepresentationForAuxiliaryDataType:&typeP];
-    }
-    
-    return result;
-}
-
-- (NSDictionary *)disparityRepresentationWithImage:(UIImage *)image
-{
-    NSError *error;
-    NSDictionary *disparityMeta = [self disparityMetadataWithImage:image];
-    
-    if (!disparityMeta) {
-        return nil;
-    }
-    
-    AVDepthData *disparityData = [AVDepthData depthDataFromDictionaryRepresentation:disparityMeta error:&error];
-    if (disparityData == nil) {
-        os_log_error(OS_LOG_DEFAULT, "Could not create disparity data with error %@", error);
-        return nil;
-    }
-    
-    NSString *type = CFS(AUX_DISPARITY);
-    return [disparityData dictionaryRepresentationForAuxiliaryDataType:&type];
-}
-
-- (NSDictionary *)matteMetadataWithImage:(UIImage *)image
-{
-    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
-    CVPixelBufferRef pxbuffer = NULL;
-    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
-                                          kCVPixelFormatType_OneComponent8, (__bridge CFDictionaryRef)options, &pxbuffer);
-    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
-    
-    CVPixelBufferLockBaseAddress(pxbuffer, 0);
-    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
-    NSParameterAssert(pxdata != NULL);
-    
-    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
-    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 8, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
-    NSParameterAssert(context);
-    CGContextConcatCTM(context, CGAffineTransformIdentity);
-    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
-    CGColorSpaceRelease(grayColorSpace);
-    CGContextRelease(context);
-    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
-    
-    size_t width = CVPixelBufferGetWidth(pxbuffer);
-    size_t height = CVPixelBufferGetHeight(pxbuffer);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
-    OSType format = kCVPixelFormatType_OneComponent8;
-    size_t size = CVPixelBufferGetDataSize(pxbuffer);
-    
-    CVPixelBufferLockBaseAddress(pxbuffer, 0);
-    void *addr = CVPixelBufferGetBaseAddress(pxbuffer);
-    NSData *pbData = [NSData dataWithBytes:addr length:size];
-    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
-    
-    CFRelease(pxbuffer);
-    
-    CGImageMetadataRef meta = [self metadataFromMetaParams:@{
-                                                             AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
-                                                             AppleMatteNamespace : @{ PP(AMatte, @"PortraitEffectsMatteVersion") : @(65536) }
-                                                             }];
-    
-    if (!meta) {
-        return nil;
-    }
-    
-    return @{
-             CFS(AUX_DATA) : pbData,
-             CFS(AUX_INFO) : @{
-                     AUX_WIDTH : @(width),
-                     AUX_HEIGHT : @(height),
-                     AUX_BYTES_PER_ROW : @(bytesPerRow),
-                     AUX_PIXEL_FORMAT : @(format)
-                     },
-             CFS(AUX_META) : CFBridgingRelease(meta)
-             };
-}
-
-- (NSDictionary *)disparityMetadataWithImage:(UIImage *)image
-{
-    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
-    CVPixelBufferRef pxbuffer = NULL;
-    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
-                                          kCVPixelFormatType_DisparityFloat16, (__bridge CFDictionaryRef)options, &pxbuffer);
-    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
-    
-    CVPixelBufferLockBaseAddress(pxbuffer, 0);
-    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
-    NSParameterAssert(pxdata != NULL);
-    
-    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
-    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 16, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
-    NSParameterAssert(context);
-    CGContextConcatCTM(context, CGAffineTransformIdentity);
-    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
-    CGColorSpaceRelease(grayColorSpace);
-    CGContextRelease(context);
-    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
-    
-    size_t width = CVPixelBufferGetWidth(pxbuffer);
-    size_t height = CVPixelBufferGetHeight(pxbuffer);
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
-    OSType format = kCVPixelFormatType_DisparityFloat16;
-    size_t size = CVPixelBufferGetDataSize(pxbuffer);
-    
-    CVPixelBufferLockBaseAddress(pxbuffer, 0);
-    void *addr = CVPixelBufferGetBaseAddress(pxbuffer);
-    NSData *pbData = [NSData dataWithBytes:addr length:size];
-    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
-    
-    CFRelease(pxbuffer);
-    
-    CGImageMetadataRef meta = [self metadataFromMetaParams:@{
-                                                             AppleNamespace : @{ PP(ImageIO, hasXMP) : @YES },
-                                                             AppleDepthNamespace : @{ PP(ADepth, Accuracy) : @"relative",
-                                                                                      PP(ADepth, Filtered) : @YES,
-                                                                                      PP(ADepth, Quality) : @"high"
-                                                                                      }
-                                                             }];
-    
-    if (!meta) {
-        return nil;
-    }
-    
-    return @{
-             CFS(AUX_DATA) : pbData,
-             CFS(AUX_INFO) : @{
-                     AUX_WIDTH : @(width),
-                     AUX_HEIGHT : @(height),
-                     AUX_BYTES_PER_ROW : @(bytesPerRow),
-                     AUX_PIXEL_FORMAT : @(format)
-                     },
-             CFS(AUX_META) : CFBridgingRelease(meta)
-             };
-}
 
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
 {
@@ -427,16 +63,6 @@
     CFRelease(metadata);
     
     return dict;
-}
-
-- (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url
-{
-    NSMutableDictionary *full = [NSMutableDictionary new];
-    
-    [full addEntriesFromDictionary:[self metaParamsFromImageAtURL:url]];
-    [full addEntriesFromDictionary:[self auxMetaParamsFromImageAtURL:url]];
-    
-    return [full copy];
 }
 
 - (nullable NSDictionary *)commonPropertiesFromImageAtURL:(nonnull NSURL *)url
@@ -497,8 +123,6 @@
     
     return result;
 }
-
-#pragma mark XMP
 
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url
 {
@@ -707,7 +331,7 @@
         NSDictionary *objDict = valueArray[i];
         if (arType == kCGImageMetadataTypeInvalid) {
             [[objDict allKeys] enumerateObjectsUsingBlock:^(NSString *  _Nonnull objString, NSUInteger idx, BOOL * _Nonnull stopString) {
-                if ([objString isEqualToString:@"type"])
+                if ([objString isEqualToString:OKAuxType])
                 {
                     arType = (CGImageMetadataType)[objDict[objString] integerValue];
                     *stopString = YES;
@@ -718,6 +342,18 @@
                 continue;
             }
         }
+        
+        if (arType == kCGImageMetadataTypeInvalid)
+        {
+            os_log_debug(OS_LOG_DEFAULT, "Ar type missing, setup default namespace: %@ name: %@", namespace, name);
+            arType = kCGImageMetadataTypeArrayOrdered;
+        }
+        
+//        NSArray *qualifiers = nil;
+//        [objDict.allKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
+//            if ([key isEqualToString:Qualifiers]) {
+//            }
+//        }];
         
         NSObject<NSCopying> *arValue = [[objDict allValues] firstObject];
         
@@ -890,6 +526,30 @@
     return [dict copy];
 }
 
+- (NSDictionary *)qualifiersFromTag:(CGImageMetadataTagRef)tag
+{
+    NSArray *qualifiers = CFBridgingRelease(CGImageMetadataTagCopyQualifiers(tag));
+    
+    if (qualifiers.count == 0) {
+        return nil;
+    }
+    
+    NSMutableDictionary *result = [NSMutableDictionary new];
+    
+    for (int i = 0; i < qualifiers.count; i++) {
+        CGImageMetadataTagRef qualiTag = (__bridge CGImageMetadataTagRef)(qualifiers[i]);
+        
+        NSString *prefix = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyPrefix(qualiTag));
+        NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(qualiTag));
+        NSObject<NSCopying> *value = [self valueFromTag:qualiTag];
+        if (value == nil) continue;
+        
+        [result setObject:value forKey:[NSString stringWithFormat:@"%@:%@", prefix, name]];
+    }
+        
+    return result;
+}
+
 - (NSObject<NSCopying> *)valueFromTag:(CGImageMetadataTagRef)tag
 {
     CGImageMetadataType type = CGImageMetadataTagGetType(tag);
@@ -904,7 +564,7 @@
         case kCGImageMetadataTypeAlternateText:
         {
             NSArray *valueArray = CFBridgingRelease(CGImageMetadataTagCopyValue(tag));
-            NSMutableArray *resultArray = [NSMutableArray arrayWithObject:@{ @"type" : @(type)}];
+            NSMutableArray *resultArray = [NSMutableArray arrayWithObject:@{ OKAuxType : @(type)}];
             for (int i = 0; i < valueArray.count; i++)
             {
                 NSObject<NSCopying> *arValue = valueArray[i];
@@ -918,8 +578,14 @@
                     CGImageMetadataTagRef arTag = (__bridge CGImageMetadataTagRef)valueArray[i];
                     NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(arTag));
                     NSObject<NSCopying> *value = [self valueFromTag:arTag];
-                    
-                    [resultArray addObject:@{ name : value }];
+//                    NSDictionary *qualifiers = [self qualifiersFromTag:arTag];
+//                    if (qualifiers) {
+//                        [resultArray addObject:@{ name : value, Qualifiers : qualifiers }];
+//                    }
+//                    else
+                    {
+                        [resultArray addObject:@{ name : value}];
+                    }
                 }
             }
             
@@ -980,6 +646,9 @@
     NSLog(@"UNSUPPORTED TAG - %@", tag);
     return nil;
 }
+
+#pragma mark COMMON
+
 
 #pragma mark RESIZING
 

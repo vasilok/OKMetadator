@@ -13,6 +13,7 @@
 #import "ImageViewController.h"
 #import "OKImageGVRMetadator.h"
 #import "PanoViewController.h"
+#import "OKImageAuxMetadator.h"
 
 @interface DetailViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
@@ -350,12 +351,16 @@
 - (IBAction)mapAction:(id)sender
 {
     NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
+    
     if ([_imageMetadator applyMap:_exImages.allValues[_exImageNumber] forImage:_image andWriteAt:tempURL])
     {
         [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
          {
              [self showResult:success];
          }];
+    }
+    else {
+        [self showResult:false];
     }
 }
 

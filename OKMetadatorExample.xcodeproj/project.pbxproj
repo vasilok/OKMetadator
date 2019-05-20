@@ -27,6 +27,8 @@
 		04097ABE222FC7CF0048416C /* mxml-entity.c in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAB222FC7CF0048416C /* mxml-entity.c */; };
 		04097ABF222FC7CF0048416C /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAD222FC7CF0048416C /* parser.cpp */; };
 		04097AC0222FC7CF0048416C /* metadata_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAE222FC7CF0048416C /* metadata_utils.cpp */; };
+		04538AFA2292E5DC00FD4E85 /* OKImageAuxMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 04538AF92292E5DC00FD4E85 /* OKImageAuxMetadator.m */; };
+		04538AFD2292F16D00FD4E85 /* OKImageMetadator+Common.m in Sources */ = {isa = PBXBuildFile; fileRef = 04538AFC2292F16D00FD4E85 /* OKImageMetadator+Common.m */; };
 		0469D7722270A5E10032BBA5 /* OKMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0469D7712270A5E10032BBA5 /* OKMetadator.m */; };
 		0487D5E72228271100B63C66 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E62228271100B63C66 /* AppDelegate.m */; };
 		0487D5EA2228271100B63C66 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E92228271100B63C66 /* ViewController.m */; };
@@ -79,6 +81,10 @@
 		04097AAC222FC7CF0048416C /* portable_endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = portable_endian.h; sourceTree = "<group>"; };
 		04097AAD222FC7CF0048416C /* parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = parser.cpp; sourceTree = "<group>"; };
 		04097AAE222FC7CF0048416C /* metadata_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = metadata_utils.cpp; sourceTree = "<group>"; };
+		04538AF82292E5DC00FD4E85 /* OKImageAuxMetadator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OKImageAuxMetadator.h; sourceTree = "<group>"; };
+		04538AF92292E5DC00FD4E85 /* OKImageAuxMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKImageAuxMetadator.m; sourceTree = "<group>"; };
+		04538AFB2292EE8900FD4E85 /* OKImageMetadator+Common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OKImageMetadator+Common.h"; sourceTree = "<group>"; };
+		04538AFC2292F16D00FD4E85 /* OKImageMetadator+Common.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "OKImageMetadator+Common.m"; sourceTree = "<group>"; };
 		0469D7712270A5E10032BBA5 /* OKMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKMetadator.m; sourceTree = "<group>"; };
 		0487D5E22228271100B63C66 /* OKMeta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OKMeta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0487D5E52228271100B63C66 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -126,6 +132,10 @@
 			children = (
 				0487D6002228278500B63C66 /* OKImageMetadator.h */,
 				0487D5FC2228278500B63C66 /* OKImageMetadator.m */,
+				04538AFB2292EE8900FD4E85 /* OKImageMetadator+Common.h */,
+				04538AFC2292F16D00FD4E85 /* OKImageMetadator+Common.m */,
+				04538AF82292E5DC00FD4E85 /* OKImageAuxMetadator.h */,
+				04538AF92292E5DC00FD4E85 /* OKImageAuxMetadator.m */,
 				0487D5FD2228278500B63C66 /* OKImageSphericalMetadator.h */,
 				0487D5FF2228278500B63C66 /* OKImageSphericalMetadator.m */,
 				048F3C18227B2A51007EDCB9 /* OKImageGVRMetadator.h */,
@@ -340,6 +350,7 @@
 				04097ABB222FC7CF0048416C /* mxml-private.c in Sources */,
 				048F3C21227C2A51007EDCB9 /* OKJpegParser.mm in Sources */,
 				04097ABD222FC7CF0048416C /* mxml-attr.c in Sources */,
+				04538AFD2292F16D00FD4E85 /* OKImageMetadator+Common.m in Sources */,
 				04097AAF222FC7CF0048416C /* box.cpp in Sources */,
 				04097ABE222FC7CF0048416C /* mxml-entity.c in Sources */,
 				048F3C1A227B2A51007EDCB9 /* OKImageGVRMetadator.m in Sources */,
@@ -359,6 +370,7 @@
 				04097AB6222FC7CF0048416C /* mxml-set.c in Sources */,
 				04097AB8222FC7CF0048416C /* mxml-search.c in Sources */,
 				04097AB9222FC7CF0048416C /* mxml-node.c in Sources */,
+				04538AFA2292E5DC00FD4E85 /* OKImageAuxMetadator.m in Sources */,
 				0487D60A2229327300B63C66 /* Librarian.m in Sources */,
 				048F3C24227C47B1007EDCB9 /* ImageViewController.m in Sources */,
 				0487D607222833E900B63C66 /* DetailViewController.m in Sources */,

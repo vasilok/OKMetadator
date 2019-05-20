@@ -160,6 +160,10 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define BitsPerChannel  @"BitsPerChannel"
 #define DateRate        @"DateRate"   // kbps
 
+#define OKAuxType  @"OKAuxType"
+#define Qualifiers @"Qualifiers"
+
+
 @interface OKMetadator : NSObject
 
 /*!
