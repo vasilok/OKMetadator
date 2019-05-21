@@ -144,9 +144,15 @@
         return NO;
     }
     
+    if (auxDict.allKeys.count > 0) {
+        [self setPortraitToMeta:destMetadata];
+    }
+    
     CGImageDestinationAddImageAndMetadata(destination, image, destMetadata, NULL);
     
-    [self setAuxParams:auxDict toDestination:destination];
+    if (auxDict.allKeys.count > 0) {
+        [self setAuxParams:auxDict toDestination:destination];
+    }
     
     if(CGImageDestinationFinalize(destination) == NO)
     {

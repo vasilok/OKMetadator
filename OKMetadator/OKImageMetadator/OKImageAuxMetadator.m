@@ -123,7 +123,29 @@
 
 - (nullable NSDictionary *)auxMetadataFromParams:(OKMetaParam *)aux
 {
-    return aux;
+    NSMutableDictionary *dictMeta = [NSMutableDictionary new];
+    
+    OKMetaParam *depth = (OKMetaParam *)aux[CFS(AUX_DEPTH)];
+    if (depth) {
+        NSDictionary *depthDict = [self auxMetadataFromParams:depth withType:AUX_DEPTH];
+        [dictMeta setObject:depthDict forKey:CFS(AUX_DEPTH)];
+    }
+    
+    OKMetaParam *disparity = (OKMetaParam *)aux[CFS(AUX_DISPARITY)];
+    if (disparity) {
+        NSDictionary *dispDict = [self auxMetadataFromParams:disparity withType:AUX_DISPARITY];
+        [dictMeta setObject:dispDict forKey:CFS(AUX_DISPARITY)];
+    }
+    
+    if (@available(iOS 12.0, *)) {
+        OKMetaParam *matte = (OKMetaParam *)aux[CFS(AUX_MATTE)];
+        if (matte) {
+            NSDictionary *matteDict = [self auxMetadataFromParams:matte withType:AUX_MATTE];
+            [dictMeta setObject:matteDict forKey:CFS(AUX_MATTE)];
+        }
+    }
+    
+    return dictMeta;
 }
 
 - (BOOL)setPortraitToMeta:(_Nonnull CGMutableImageMetadataRef)meta
@@ -242,8 +264,9 @@
     
     NSDictionary *matteRepresentation = nil;//[self matteRepresentationWithImage:map];
     NSDictionary *disparityRepresentation = [self disparityRepresentationWithImage:resizedMap];
+    NSDictionary *depthRepresentation = nil;//[self depthRepresentationWithImage:resizedMap];
     
-    if (!disparityRepresentation && !matteRepresentation) {
+    if (!disparityRepresentation && !matteRepresentation && !depthRepresentation) {
         return NO;
     }
     
@@ -276,6 +299,9 @@
     
     if (disparityRepresentation) {
         CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DISPARITY, (CFDictionaryRef)disparityRepresentation);
+    }
+    if (depthRepresentation) {
+        CGImageDestinationAddAuxiliaryDataInfo(destination, AUX_DEPTH, (CFDictionaryRef)depthRepresentation);
     }
     if (matteRepresentation) {
         if (@available(iOS 12.0, *)) {
@@ -325,6 +351,22 @@
     {
         dict[CFS(AUX_META)] = [self metaParamsFromMetadata:meta];
         CFRelease(meta);
+    }
+    
+    return [dict copy];
+}
+
+- (nullable NSDictionary *)auxMetadataFromParams:(nonnull OKMetaParam *)aux withType:(CFStringRef)type
+{
+    NSMutableDictionary *dict = [aux mutableCopy];
+    
+    if (aux)
+    {
+        CGImageMetadataRef metadata = [self metadataFromMetaParams:aux];
+        if (metadata) {
+            dict[CFS(AUX_META)] = (__bridge id _Nullable)(metadata);
+        }
+        CFRelease(metadata);
     }
     
     return [dict copy];
@@ -436,7 +478,7 @@
 
 - (NSDictionary *)disparityMetadataWithImage:(UIImage *)image
 {
-    CGImageRef cgImage = image.CGImage;
+ //   CGImageRef cgImage = image.CGImage;
     
     //    CGColorSpaceRef coloSpace = CGImageGetColorSpace(cgImage);
     //    CGImagePixelFormatInfo pixelInfo = CGImageGetPixelFormatInfo(cgImage);
@@ -444,18 +486,18 @@
     //    CGBitmapInfo bitmap = CGImageGetBitmapInfo(cgImage);
     //    size_t bytesPer = CGImageGetBytesPerRow(cgImage);
     
-    CIImage *ciImage = [CIImage imageWithCGImage:cgImage];
-    CIFilter *invertFilter = [CIFilter filterWithName:@"CIColorInvert"];
-    [invertFilter setDefaults];
-    [invertFilter setValue:ciImage forKey: kCIInputImageKey];
-    CIImage *filtered = [invertFilter outputImage];
-    
-    CIFilter *dispFilter = [CIFilter filterWithName:@"CIDepthToDisparity"];
-    [dispFilter setDefaults];
-    [dispFilter setValue:filtered forKey: kCIInputImageKey];
-    
-    filtered = [dispFilter outputImage];
-    CGImageRef filteredCGImage = [[CIContext context] createCGImage:filtered fromRect:filtered.extent];
+//    CIImage *ciImage = [CIImage imageWithCGImage:cgImage];
+//    CIFilter *invertFilter = [CIFilter filterWithName:@"CIColorInvert"];
+//    [invertFilter setDefaults];
+//    [invertFilter setValue:ciImage forKey: kCIInputImageKey];
+//    CIImage *filtered = [invertFilter outputImage];
+//
+//    CIFilter *dispFilter = [CIFilter filterWithName:@"CIDepthToDisparity"];
+//    [dispFilter setDefaults];
+//    [dispFilter setValue:filtered forKey: kCIInputImageKey];
+//
+//    filtered = [dispFilter outputImage];
+//    CGImageRef filteredCGImage = [[CIContext context] createCGImage:filtered fromRect:filtered.extent];
     
     
     
@@ -475,7 +517,7 @@
     CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 16, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
     NSParameterAssert(context);
     CGContextConcatCTM(context, CGAffineTransformIdentity);
-    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), filteredCGImage/*image.CGImage*/);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
     CGColorSpaceRelease(grayColorSpace);
     CGContextRelease(context);
     CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
@@ -573,6 +615,86 @@
              CFS(AUX_META) : CFBridgingRelease(meta)
              };
 }
+
+- (NSDictionary *)depthRepresentationWithImage:(UIImage *)image
+{
+    NSError *error;
+    NSDictionary *depthMeta = [self depthMetadataWithImage:image];
+    
+    if (!depthMeta) {
+        return nil;
+    }
+    
+    AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthMeta error:&error];
+    if (depthData == nil) {
+        os_log_error(OS_LOG_DEFAULT, "Could not create disparity data with error %@", error);
+        return nil;
+    }
+    
+    NSString *type = CFS(AUX_DEPTH);
+    return [depthData dictionaryRepresentationForAuxiliaryDataType:&type];
+}
+
+- (NSDictionary *)depthMetadataWithImage:(UIImage *)image
+{
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
+                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
+    CVPixelBufferRef pxbuffer = NULL;
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
+                                          kCVPixelFormatType_DepthFloat16, (__bridge CFDictionaryRef)options, &pxbuffer);
+    NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSParameterAssert(pxdata != NULL);
+    
+    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
+    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 16, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
+    NSParameterAssert(context);
+    CGContextConcatCTM(context, CGAffineTransformIdentity);
+    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
+    CGColorSpaceRelease(grayColorSpace);
+    CGContextRelease(context);
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    size_t width = CVPixelBufferGetWidth(pxbuffer);
+    size_t height = CVPixelBufferGetHeight(pxbuffer);
+    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
+    OSType format = kCVPixelFormatType_DepthFloat16;
+    size_t size = CVPixelBufferGetDataSize(pxbuffer);
+    
+    CVPixelBufferLockBaseAddress(pxbuffer, 0);
+    void *addr = CVPixelBufferGetBaseAddress(pxbuffer);
+    NSData *pbData = [NSData dataWithBytes:addr length:size];
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    
+    CFRelease(pxbuffer);
+    
+    CGImageMetadataRef meta = [self metadataFromMetaParams:@{
+                                                             AppleNamespace : @{ PP(ImageIO, hasXMP) : @"true" },
+                                                             AppleDepthNamespace : @{ PP(ADepth, Accuracy) : @"relative",
+                                                                                      PP(ADepth, Filtered) : @"true",
+                                                                                      PP(ADepth, Quality) : @"high"
+                                                                                      }
+                                                             }];
+    
+    if (!meta) {
+        return nil;
+    }
+    
+    return @{
+             CFS(AUX_DATA) : pbData,
+             CFS(AUX_INFO) : @{
+                     AUX_WIDTH : @(width),
+                     AUX_HEIGHT : @(height),
+                     AUX_BYTES_PER_ROW : @(bytesPerRow),
+                     AUX_PIXEL_FORMAT : @(format)
+                     },
+             CFS(AUX_META) : CFBridgingRelease(meta)
+             };
+}
+
 
 #pragma mark Stabs
 

@@ -352,7 +352,9 @@
 {
     NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
     
-    if ([_imageMetadator applyMap:_exImages.allValues[_exImageNumber] forImage:_image andWriteAt:tempURL])
+    UIImage *mapImage = [UIImage imageNamed:@"testDepth.JPG"];//_exImages.allValues[_exImageNumber]
+    
+    if ([_imageMetadator applyMap:mapImage forImage:_image andWriteAt:tempURL])
     {
         [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
          {

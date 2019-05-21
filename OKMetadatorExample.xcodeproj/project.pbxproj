@@ -29,6 +29,7 @@
 		04097AC0222FC7CF0048416C /* metadata_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04097AAE222FC7CF0048416C /* metadata_utils.cpp */; };
 		04538AFA2292E5DC00FD4E85 /* OKImageAuxMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 04538AF92292E5DC00FD4E85 /* OKImageAuxMetadator.m */; };
 		04538AFD2292F16D00FD4E85 /* OKImageMetadator+Common.m in Sources */ = {isa = PBXBuildFile; fileRef = 04538AFC2292F16D00FD4E85 /* OKImageMetadator+Common.m */; };
+		04538AFF2293D65000FD4E85 /* testDepth.JPG in Resources */ = {isa = PBXBuildFile; fileRef = 04538AFE2293D64F00FD4E85 /* testDepth.JPG */; };
 		0469D7722270A5E10032BBA5 /* OKMetadator.m in Sources */ = {isa = PBXBuildFile; fileRef = 0469D7712270A5E10032BBA5 /* OKMetadator.m */; };
 		0487D5E72228271100B63C66 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E62228271100B63C66 /* AppDelegate.m */; };
 		0487D5EA2228271100B63C66 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0487D5E92228271100B63C66 /* ViewController.m */; };
@@ -85,6 +86,7 @@
 		04538AF92292E5DC00FD4E85 /* OKImageAuxMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKImageAuxMetadator.m; sourceTree = "<group>"; };
 		04538AFB2292EE8900FD4E85 /* OKImageMetadator+Common.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OKImageMetadator+Common.h"; sourceTree = "<group>"; };
 		04538AFC2292F16D00FD4E85 /* OKImageMetadator+Common.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "OKImageMetadator+Common.m"; sourceTree = "<group>"; };
+		04538AFE2293D64F00FD4E85 /* testDepth.JPG */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = testDepth.JPG; sourceTree = "<group>"; };
 		0469D7712270A5E10032BBA5 /* OKMetadator.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OKMetadator.m; sourceTree = "<group>"; };
 		0487D5E22228271100B63C66 /* OKMeta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OKMeta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0487D5E52228271100B63C66 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -229,6 +231,7 @@
 		0487D5E42228271100B63C66 /* OKMetadatorExample */ = {
 			isa = PBXGroup;
 			children = (
+				04538AFE2293D64F00FD4E85 /* testDepth.JPG */,
 				0487D5E52228271100B63C66 /* AppDelegate.h */,
 				0487D5E62228271100B63C66 /* AppDelegate.m */,
 				0487D6082229327300B63C66 /* Librarian.h */,
@@ -331,6 +334,7 @@
 				04097AB4222FC7CF0048416C /* README.md in Resources */,
 				0487D5F22228271200B63C66 /* LaunchScreen.storyboard in Resources */,
 				048F3C29228010ED007EDCB9 /* PanoViewController.xib in Resources */,
+				04538AFF2293D65000FD4E85 /* testDepth.JPG in Resources */,
 				0487D5EF2228271200B63C66 /* Assets.xcassets in Resources */,
 				0487D5ED2228271100B63C66 /* Main.storyboard in Resources */,
 				04097AB3222FC7CF0048416C /* LICENSE in Resources */,
