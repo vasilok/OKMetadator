@@ -227,29 +227,8 @@
       forImageAt:(nonnull NSURL *)imageURL
       andWriteAt:(nonnull NSURL *)url
 {
-    // try resave
-    // map the same image (from imageURL)
-    
-    CIImage *ciImage = [CIImage imageWithCGImage:map.CGImage];
-    CIImage *filtered = [ciImage imageByApplyingFilter:@"CISepiaTone" withInputParameters:@{kCIInputIntensityKey : @(0.5)}];
-    CGImageRef processed = [[CIContext context] createCGImage:filtered fromRect:filtered.extent];
-    UIImage *result = [UIImage imageWithCGImage:processed];
-    
-    // не важно
-    NSDictionary *props = nil;//[self propertiesFromImageAtURL:imageURL];
-    
-    // важно! для портрета нужен только 1 флаг - exif:CustomRendered = 8
-    CGImageMetadataRef meta = [self metaFromImageAtURL:imageURL]; // !!!!!!!!!
-    
-    // не работает
-    //    NSDictionary *okMetaDict = [self metaParamsFromMetadata:meta];
-    //    CGImageMetadataRef okMeta = [self metadataFromMetaParams:okMetaDict];
-    
-    CGImageMetadataRef newMeta =[self metaFromMeta:meta];
-    
-    NSDictionary *aux = [self auxMetadataFromImageAtURL:imageURL];
-    
-    return [self writeImage:result withMeta:newMeta auxDict:aux properties:props atURL:url];
+    // not implemented yet
+    return NO;
 }
 
 - (BOOL)applyMap:(nonnull UIImage *)map
@@ -258,13 +237,13 @@
 {
     NSAssert(map && image && url, @"Unexpected NIL!");
     
-    CGFloat resizeKoef = 5.25;
+    CGFloat resizeKoef = 2;
     CGSize resize = CGSizeMake(image.size.width/resizeKoef, image.size.height/resizeKoef);
     UIImage *resizedMap = [self resize:resize image:map];
     
-    NSDictionary *matteRepresentation = nil;//[self matteRepresentationWithImage:map];
     NSDictionary *disparityRepresentation = [self disparityRepresentationWithImage:resizedMap];
     NSDictionary *depthRepresentation = nil;//[self depthRepresentationWithImage:resizedMap];
+    NSDictionary *matteRepresentation = nil;//[self matteRepresentationWithImage:map];
     
     if (!disparityRepresentation && !matteRepresentation && !depthRepresentation) {
         return NO;
@@ -476,56 +455,110 @@
     return [disparityData dictionaryRepresentationForAuxiliaryDataType:&type];
 }
 
-- (NSDictionary *)disparityMetadataWithImage:(UIImage *)image
+#define Mask8(x) ( (x) & 0xFF )
+#define R(x) ( Mask8(x) )
+#define G(x) ( Mask8(x >> 8 ) )
+#define B(x) ( Mask8(x >> 16) )
+#define A(x) ( Mask8(x >> 24) )
+#define RGBAMake(r, g, b, a) ( Mask8(r) | Mask8(g) << 8 | Mask8(b) << 16 | Mask8(a) << 24 )
+
+- (CVPixelBufferRef)disparity32PixelBufferFromImage:(UIImage *)image
 {
- //   CGImageRef cgImage = image.CGImage;
-    
-    //    CGColorSpaceRef coloSpace = CGImageGetColorSpace(cgImage);
-    //    CGImagePixelFormatInfo pixelInfo = CGImageGetPixelFormatInfo(cgImage);
-    //    CGImageByteOrderInfo order = CGImageGetByteOrderInfo(cgImage);
-    //    CGBitmapInfo bitmap = CGImageGetBitmapInfo(cgImage);
-    //    size_t bytesPer = CGImageGetBytesPerRow(cgImage);
-    
-//    CIImage *ciImage = [CIImage imageWithCGImage:cgImage];
-//    CIFilter *invertFilter = [CIFilter filterWithName:@"CIColorInvert"];
-//    [invertFilter setDefaults];
-//    [invertFilter setValue:ciImage forKey: kCIInputImageKey];
-//    CIImage *filtered = [invertFilter outputImage];
-//
-//    CIFilter *dispFilter = [CIFilter filterWithName:@"CIDepthToDisparity"];
-//    [dispFilter setDefaults];
-//    [dispFilter setValue:filtered forKey: kCIInputImageKey];
-//
-//    filtered = [dispFilter outputImage];
-//    CGImageRef filteredCGImage = [[CIContext context] createCGImage:filtered fromRect:filtered.extent];
-    
-    
-    
-    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGImageCompatibilityKey,
-                             [NSNumber numberWithBool:YES], kCVPixelBufferCGBitmapContextCompatibilityKey, nil];
+    // 1) orig PB
     CVPixelBufferRef pxbuffer = NULL;
-    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage),
-                                          kCVPixelFormatType_DisparityFloat16, (__bridge CFDictionaryRef)options, &pxbuffer);
+    CGImageRef cgImage = image.CGImage;
+    size_t width =  CGImageGetWidth(cgImage);
+    size_t height =  CGImageGetHeight(cgImage);
+    
+    NSDictionary *options = @{ CFS(kCVPixelBufferCGImageCompatibilityKey) : @YES, CFS(kCVPixelBufferCGBitmapContextCompatibilityKey) : @YES};
+    CVReturn status = CVPixelBufferCreate(kCFAllocatorDefault, width, height,
+                                          kCVPixelFormatType_32ARGB, (__bridge CFDictionaryRef)options, &pxbuffer);
     NSParameterAssert(status == kCVReturnSuccess && pxbuffer != NULL);
     
     CVPixelBufferLockBaseAddress(pxbuffer, 0);
     void *pxdata = CVPixelBufferGetBaseAddress(pxbuffer);
     NSParameterAssert(pxdata != NULL);
     
-    CGColorSpaceRef grayColorSpace = CGColorSpaceCreateDeviceGray();
-    CGContextRef context = CGBitmapContextCreate(pxdata, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage), 16, CVPixelBufferGetBytesPerRow(pxbuffer), grayColorSpace, kCGImageAlphaNone);
+    width = CVPixelBufferGetWidth(pxbuffer);
+    height = CVPixelBufferGetHeight(pxbuffer);
+    
+    // 1a fill buffer
+    CGColorSpaceRef rgbColorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(pxdata, width, height, 8, CVPixelBufferGetBytesPerRow(pxbuffer), rgbColorSpace,
+                                                 kCGImageAlphaNoneSkipLast);
     NSParameterAssert(context);
     CGContextConcatCTM(context, CGAffineTransformIdentity);
-    CGContextDrawImage(context, CGRectMake(0, 0, CGImageGetWidth(image.CGImage), CGImageGetHeight(image.CGImage)), image.CGImage);
-    CGColorSpaceRelease(grayColorSpace);
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
+    CGColorSpaceRelease(rgbColorSpace);
     CGContextRelease(context);
     CVPixelBufferUnlockBaseAddress(pxbuffer, 0);
+    CFRelease(rgbColorSpace);
     
+    // 2) disp PB
+    CVPixelBufferRef dispartyPixelBuffer = NULL;
+    status = CVPixelBufferCreate(kCFAllocatorDefault, width, height,
+                                 kCVPixelFormatType_DisparityFloat32, (__bridge CFDictionaryRef)options, &dispartyPixelBuffer);
+    NSParameterAssert(status == kCVReturnSuccess && dispartyPixelBuffer != NULL);
+    
+   // 3) copy
+    CVPixelBufferLockBaseAddress(dispartyPixelBuffer, 0);
+    CVPixelBufferLockBaseAddress(pxbuffer, 1);
+    
+    float *outPB = CVPixelBufferGetBaseAddress(dispartyPixelBuffer);
+    UInt32 *inPB = CVPixelBufferGetBaseAddress(pxbuffer);
+    
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            long index = y * width + x;
+            UInt32 color = inPB[index];
+            // Average of RGB = greyscale
+            UInt32 averageColor = (R(color) + G(color) + B(color)) / 3.0;
+            outPB[index] = averageColor / 255.0;
+        }
+    }
+    
+    CVPixelBufferUnlockBaseAddress(pxbuffer, 1);
+    CVPixelBufferUnlockBaseAddress(dispartyPixelBuffer, 0);
+    
+    // 4) normilize
+    CVPixelBufferLockBaseAddress(dispartyPixelBuffer, 0);
+    float *addr = CVPixelBufferGetBaseAddress(dispartyPixelBuffer);
+    
+    float minPixel = 1.0;
+    float maxPixel = 0.0;
+    
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            long index = y * width + x;
+            float pixel = addr[index];
+            minPixel = fminf(pixel, minPixel);
+            maxPixel = fmaxf(pixel, maxPixel);
+        }
+    }
+    
+    float range = maxPixel - minPixel;
+    
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            long index = y * width + x;
+            float pixel = addr[index];
+            addr[index] = (pixel - minPixel) / range;
+        }
+    }
+    
+    CVPixelBufferUnlockBaseAddress(dispartyPixelBuffer, 0);
+
+    return dispartyPixelBuffer;
+}
+
+- (NSDictionary *)disparityMetadataWithImage:(UIImage *)image
+{
+    CVPixelBufferRef pxbuffer = [self disparity32PixelBufferFromImage:image];
+
     size_t width = CVPixelBufferGetWidth(pxbuffer);
     size_t height = CVPixelBufferGetHeight(pxbuffer);
     size_t bytesPerRow = CVPixelBufferGetBytesPerRow(pxbuffer);
-    OSType format = kCVPixelFormatType_DisparityFloat16;
+    OSType format = CVPixelBufferGetPixelFormatType(pxbuffer);
     size_t size = CVPixelBufferGetDataSize(pxbuffer);
     
     CVPixelBufferLockBaseAddress(pxbuffer, 0);
@@ -694,194 +727,5 @@
              CFS(AUX_META) : CFBridgingRelease(meta)
              };
 }
-
-
-#pragma mark Stabs
-
-- (CGImageMetadataRef)metaFromMeta:(CGImageMetadataRef)meta
-{
-    CGMutableImageMetadataRef result = CGImageMetadataCreateMutable();
-    
-    /*
-     CGImageMetadataEnumerateTagsUsingBlock(meta, NULL, NULL, ^bool(CFStringRef  _Nonnull path, CGImageMetadataTagRef  _Nonnull tag) {
-     NSString *prefix = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyPrefix(tag));
-     NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(tag));
-     NSString *namespace = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyNamespace(tag));
-     
-     // не нужно для определения портрета !!!!!! но без нее нет DepthData  и похоже не сохраняется aux meta!
-     if ([namespace isEqualToString:@"http://www.metadataworkinggroup.com/schemas/regions/"]) {
-     NSLog(@"REMOVE metadataworkinggroup");
-     return true;
-     }
-     
-     // не нужно для определения портрета !!!!!!
-     if ([namespace isEqualToString:@"http://cipa.jp/exif/1.0/"]) {
-     NSLog(@"REMOVE cipa");
-     return true;
-     }
-     
-     // не нужно для определения портрета !!!!!!
-     if ([namespace isEqualToString:@"http://purl.org/dc/elements/1.1/"]) {
-     NSLog(@"REMOVE purl");
-     return true;
-     }
-     
-     // не нужно для определения портрета !!!!!!
-     if ([namespace isEqualToString:@"http://ns.adobe.com/xap/1.0/"] || [namespace isEqualToString:@"http://ns.adobe.com/photoshop/1.0/"]) {
-     NSLog(@"REMOVE xap/photoshop");
-     return true;
-     }
-     
-     // не нужно для определения портрета !!!!!!
-     if ([namespace isEqualToString:@"http://ns.adobe.com/tiff/1.0/"]) {
-     NSLog(@"REMOVE tiff");
-     return true;
-     }
-     
-     // не нужно для определения портрета !!!!!!
-     if ([namespace isEqualToString:@"http://ns.apple.com/ImageIO/1.0/"]) {
-     NSLog(@"REMOVE ImageIO");
-     return true;
-     }
-     
-     // ВЛИЯЕТ!
-     if ([namespace isEqualToString:@"http://ns.adobe.com/exif/1.0/"]) {
-     //NSLog(@"REMOVE exif");
-     return true;
-     // check TAG
-     
-     //                "exif:CustomRendered" = 8;
-     //                "exif:ExifVersion" = 0221;
-     //                "exif:ExposureBiasValue" = "0/1";
-     //                "exif:ExposureMode" = 0;
-     //                "exif:ExposureProgram" = 2;
-     //                "exif:ExposureTime" = "1/50";
-     //                "exif:FNumber" = "12/5";
-     //                "exif:Flash" =
-     //                "exif:FlashPixVersion" = 0100;
-     //                "exif:FocalLenIn35mmFilm" = 52;
-     //                "exif:FocalLength" = "6/1";
-     //                "exif:ISOSpeedRatings" =
-     //                "exif:MeteringMode" = 5;
-     //                "exif:PixelXDimension" = 3024;
-     //                "exif:PixelYDimension" = 4032;
-     //                "exif:SceneCaptureType" = 0;
-     //                "exif:SceneType" = 1;
-     //                "exif:SensingMethod" = 2;
-     //                "exif:ShutterSpeedValue" = "16689/2956";
-     //                "exif:SubsecTimeDigitized" = 564;
-     //                "exif:SubsecTimeOriginal" = 564;
-     //                "exif:UserComment" = "Created with DepthCam";
-     //                "exif:WhiteBalance" = 0;
-     
-     //               if ([name isEqualToString:@"SubjectArea"] ||
-     //                    [name isEqualToString:@"ApertureValue"] ||
-     //                    [name isEqualToString:@"BrightnessValue"] ||
-     //                    [name isEqualToString:@"ColorSpace"] ||
-     //                    [name isEqualToString:@"ComponentsConfiguration"] ||
-     
-     
-     // !!!!!!!!!
-     //                    [name isEqualToString:@"CustomRendered"])
-     //                {
-     //                    NSLog(@"REMOVE exif tag: %@", name);
-     //                    return true;
-     //                }
-     }
-     
-     CGImageMetadataRegisterNamespaceForPrefix(result, (CFStringRef)namespace, (CFStringRef)prefix, NULL);
-     CGImageMetadataSetTagWithPath(result, NULL, (CFStringRef)path, tag);
-     
-     return true;
-     });
-     */
-    CGImageMetadataRegisterNamespaceForPrefix(result, (CFStringRef)@"http://ns.adobe.com/exif/1.0/", (CFStringRef)@"exif", NULL);
-    CGImageMetadataTagRef tag = CGImageMetadataTagCreate((CFStringRef)@"http://ns.adobe.com/exif/1.0/",
-                                                         (CFStringRef)@"exif",
-                                                         (CFStringRef)@"CustomRendered",
-                                                         kCGImageMetadataTypeString,
-                                                         (__bridge CFTypeRef)@(8));
-    CGImageMetadataSetTagWithPath(result, NULL, (CFStringRef)@"exif:CustomRendered", tag);
-    
-    return result;
-}
-
-- (NSDictionary *)stabMetaParamsForAppleDepthWithImage:(UIImage *)image
-{
-    return @{
-             @"http://cipa.jp/exif/1.0/" : @{
-                     @"exifEX:LensMake" : @"Apple",
-                     @"exifEX:LensModel" : @"iPhone XS Max back dual camera 6mm f/2.4",
-                     @"exifEX:LensSpecification" : @[
-                             @{@"[0]" : @"17/4"},
-                             @{@"[1]" : @"6/1"},
-                             @{@"[2]" : @"9/5"},
-                             @{@"[3]" : @"12/5"},
-                             ],
-                     @"exifEX:PhotographicSensitivity" : @(100)
-                     },
-             @"http://ns.apple.com/ImageIO/1.0/" : @{
-                     @"iio:hasXMP" : @"true"
-                     },
-             @"http://purl.org/dc/elements/1.1/" : @{
-                     @"dc:description" :  @[
-                             @{@"[x-default]" : @"Created with DepthCam"},
-                             @{@"Qualifiers" : @[ @{@"xml:lang" : @"x-default"} ] },
-                             ]
-                     },
-             @"http://ns.adobe.com/xap/1.0/" :  @{
-                     @"xmp:CreateDate" : @"2019-05-08T10:07:17.564",
-                     @"xmp:CreatorTool" : @"12.2",
-                     @"xmp:ModifyDate" : @"2019-05-08T10:07:17"
-                     },
-             @"http://ns.adobe.com/tiff/1.0/" : @{
-                     @"tiff:Make" : @"Apple",
-                     @"tiff:Model" : @"iPhone XS Max",
-                     @"tiff:Orientation" : @(0),
-                     @"tiff:ResolutionUnit" : @(2),
-                     @"tiff:XResolution" : @"72/1",
-                     @"tiff:YResolution" : @"72/1",
-                     @"tiff:_YCbCrPositioning" : @(1)
-                     },
-             //             @"http://www.metadataworkinggroup.com/schemas/regions/" : @{
-             //                     @"mwg-rs:Regions" : @{
-             //                             @"AppliedToDimensions" : @{
-             //                                     @"h" : @{ @"http://ns.adobe.com/xap/1.0/sType/Dimensions#:stDim:h" : @(image.size.height) },
-             //                                     @"w" : @{ @"http://ns.adobe.com/xap/1.0/sType/Dimensions#:stDim:w" : @(image.size.width) },
-             //                                     @"unit" : @{ @"http://ns.adobe.com/xap/1.0/sType/Dimensions#:stDim:unit" : @"pixel" }
-             //                                     },
-             //                             @"RegionList" : @[
-             //                                     ]
-             //                             }
-             //                     }
-             };
-}
-
-// не нужно !
-//- (NSDictionary *)stabPropertiesForAppleDepthWithImage:(UIImage *)image
-//{
-//    return @{
-//             (NSString *)kCGImagePropertyExifAuxDictionary : @{
-//                     @"Regions" : @{
-//                             @"HeightAppliedTo" : @((int)image.size.height),
-//                             @"RegionList" : @[
-//                                               @{
-//                                                   @"Height": @(0.182),
-//                                                   @"Type" : @"Focus",
-//                                                   @"Width" : @(0.08299999999999999),
-//                                                   @"X" : @(0.2555),
-//                                                   @"Y" : @(0.414)
-//                                               }
-//                                               ],
-//                             @"WidthAppliedTo" : @((int)image.size.width)
-//                     }
-//                 },
-//             (NSString *)kCGImagePropertyIPTCDictionary :  @{
-//                     @"Caption/Abstract" : @"Created with DepthCam"
-//                 },
-//             (NSString *)kCGImagePropertyMakerAppleDictionary : @{
-//                 }
-//             };
-//}
 
 @end

@@ -97,6 +97,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)convertDepthImageAt:(nonnull NSURL *)depthImageURL
          toDisparityImageAt:(nonnull NSURL *)disparityURL;
 
+- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage;
+
 @end
 
 NS_ASSUME_NONNULL_END

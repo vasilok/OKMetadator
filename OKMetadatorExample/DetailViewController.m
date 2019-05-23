@@ -14,8 +14,9 @@
 #import "OKImageGVRMetadator.h"
 #import "PanoViewController.h"
 #import "OKImageAuxMetadator.h"
+#import <MobileCoreServices/UTCoreTypes.h>
 
-@interface DetailViewController ()
+@interface DetailViewController ()<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak, nonatomic) IBOutlet UIButton *panoBtn;
 @property (weak, nonatomic) IBOutlet UITextView *metaView;
@@ -350,11 +351,37 @@
 
 - (IBAction)mapAction:(id)sender
 {
+    UIImage *mapImage = _exImages.allValues[_exImageNumber];
+    [self processMap:mapImage];
+}
+
+- (IBAction)loadMapAction:(id)sender
+{
+    UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+    picker.delegate = self;
+    picker.mediaTypes = @[(NSString *)kUTTypeImage];
+    picker.allowsEditing = NO;
+    [self presentViewController:picker animated:YES completion:NULL];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey, id> *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:^{ }];
+    UIImage *image = info[UIImagePickerControllerOriginalImage];
+    
+    [self processMap:image];
+}
+
+- (void)processMap:(UIImage *)map
+{
+    if (!map) {
+        [self showResult:false];
+        return;
+    }
+    
     NSURL *tempURL = [Librarian tempImageURLWithExtension:@"jpg"];
     
-    UIImage *mapImage = [UIImage imageNamed:@"testDepth.JPG"];//_exImages.allValues[_exImageNumber]
-    
-    if ([_imageMetadator applyMap:mapImage forImage:_image andWriteAt:tempURL])
+    if ([_imageMetadator applyMap:map forImage:_image andWriteAt:tempURL])
     {
         [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success)
          {
