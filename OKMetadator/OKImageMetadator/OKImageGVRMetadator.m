@@ -31,8 +31,8 @@
 {
     NSAssert(sbsImage && outputURL, @"Unexpected NIL!");
     
-    UIImage *leftImage = [self extractLeft:YES fromImage:sbsImage];
-    UIImage *rightImage = [self extractLeft:NO fromImage:sbsImage];
+    UIImage *leftImage = [self extractLeft:YES fromSBS:sbsImage];
+    UIImage *rightImage = [self extractLeft:NO fromSBS:sbsImage];
     
     return [self processMakeVRLeft:leftImage right:rightImage withMeta:meta outputURL:outputURL];
 }
@@ -164,7 +164,7 @@
     return [self writeImage:leftImage withMetaParams:allParams properties:nil atURL:outputURL];
 }
 
-- (UIImage *)extractLeft:(BOOL)left fromImage:(UIImage *)sbsImage
+- (UIImage *)extractLeft:(BOOL)left fromSBS:(UIImage *)sbsImage
 {
     CIImage *ciimage = [CIImage imageWithCGImage:sbsImage.CGImage];
     CGRect rect;
