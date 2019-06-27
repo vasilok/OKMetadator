@@ -35,6 +35,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define AppleDepthNamespace  @"http://ns.apple.com/depthData/1.0/"
 #define GDepthNamespace  @"http://ns.google.com/photos/1.0/depthmap/"
 #define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
+#define AppleMatteNamespace  @"http://ns.apple.com/portraitEffectsMatte/1.0/"
 
 // Available Image prefixes
 #define GPano   @"GPano"
@@ -45,6 +46,11 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
+
+#define exif @"exif"
+#define CustomRendered @"CustomRendered"
+
+#define Qualifiers @"Qualifiers"
 
 // Auxiliarity
 #define AUX_DEPTH     kCGImageAuxiliaryDataTypeDepth
@@ -64,6 +70,8 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Accuracy @"Accuracy"
 #define Filtered @"Filtered"
 #define Quality @"Quality"
+
+#define AMatte @"portraitEffectsMatte"
 
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"
@@ -156,6 +164,10 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define FramesPerPacket @"FramesPerPacket"
 #define BitsPerChannel  @"BitsPerChannel"
 #define DateRate        @"DateRate"   // kbps
+
+#define OKAuxType  @"OKAuxType"
+
+
 
 @interface OKMetadator : NSObject
 

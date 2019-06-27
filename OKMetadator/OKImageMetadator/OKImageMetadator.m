@@ -8,8 +8,7 @@
 
 #import "OKImageMetadator.h"
 #import <os/log.h>
-// for depth data
-#import <AVFoundation/AVFoundation.h>
+#import "OKImageMetadator+Common.h"
 
 @implementation OKImageMetadator
 
@@ -49,136 +48,6 @@
     return metadata;
 }
 
-- (nullable OKMetaParam *)auxMetaParamsFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
-        return nil;
-    }
-    
-    NSMutableDictionary *aux = [NSMutableDictionary new];
-    
-    NSDictionary *depth = [self auxDictionaryFromSource:source withType:AUX_DEPTH];
-    if (depth) {
-        [aux setObject:depth forKey:CFS(AUX_DEPTH)];
-    }
-    
-    NSDictionary *disparity = [self auxDictionaryFromSource:source withType:AUX_DISPARITY];
-    if (disparity) {
-        [aux setObject:disparity forKey:CFS(AUX_DISPARITY)];
-    }
-    
-    if (@available(iOS 12.0, *)) {
-        NSDictionary *matte = [self auxDictionaryFromSource:source withType:AUX_MATTE];
-        if (matte) {
-            [aux setObject:matte forKey:CFS(AUX_MATTE)];
-        }
-    }
-    
-    CFRelease(source);
-    
-    if (aux.allKeys.count == 0) {
-        return nil;
-    }
-    
-    return [aux copy];
-}
-
-- (NSDictionary *)auxDictionaryFromSource:(CGImageSourceRef)source withType:(CFStringRef)type
-{
-    NSMutableDictionary *dict = [CFBridgingRelease(CGImageSourceCopyAuxiliaryDataInfoAtIndex(source, 0, type)) mutableCopy];
-    CGImageMetadataRef meta = CFBridgingRetain([dict objectForKey:CFS(AUX_META)]);
-    
-    if (meta)
-    {
-        dict[CFS(AUX_META)] = [self metaParamsFromMetadata:meta];
-        CFRelease(meta);
-    }
-    
-    return [dict copy];
-}
-
-- (nullable UIImage *)imageFromImageSource:(CGImageSourceRef)source withAuxType:(CFStringRef)type
-{
-    NSDictionary *depthDict = [self auxDictionaryFromSource:source withType:type];
-    if (depthDict)
-    {
-        NSError *error;
-        CIImage *ciImage;
-        
-        if ((type == AUX_DISPARITY) || (type == AUX_DEPTH))
-        {
-            AVDepthData *depthData = [AVDepthData depthDataFromDictionaryRepresentation:depthDict
-                                                                                  error:&error];
-        
-            if (depthData == nil) {
-                os_log_error(OS_LOG_DEFAULT, "Could not create deapth data from source with error %@", error);
-            }
-            
-            if (depthData.depthDataType != kCVPixelFormatType_DisparityFloat16) {
-                depthData = [depthData depthDataByConvertingToDepthDataType:kCVPixelFormatType_DisparityFloat16];
-            }
-            
-            ciImage = [CIImage imageWithDepthData:depthData];
-        }
-        else if (@available(iOS 12.0, *)) {
-        
-            AVPortraitEffectsMatte *matteData = [AVPortraitEffectsMatte portraitEffectsMatteFromDictionaryRepresentation:depthDict
-                                                                                                                   error:&error];
-            if (matteData == nil) {
-                os_log_error(OS_LOG_DEFAULT, "Could not create matte data from source with error %@", error);
-            }
-            
-            if (matteData.pixelFormatType != kCVPixelFormatType_OneComponent8) {
-                os_log_error(OS_LOG_DEFAULT, "Matte data has invalid pixel format !");
-            }
-            
-            ciImage = [CIImage imageWithPortaitEffectsMatte:matteData];
-        }
-        
-        CGImageRef cgImage = [[CIContext context] createCGImage:ciImage fromRect:ciImage.extent];
-        return [UIImage imageWithCGImage:cgImage];
-    }
-    
-    return nil;
-}
-
-- (nullable NSDictionary *)auxImagesFromImageAtURL:(nonnull NSURL *)url
-{
-    NSAssert(url, @"Unexpected NIL!");
-    
-    CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
-    if (source == NULL)
-    {
-        os_log_error(OS_LOG_DEFAULT, "Could not create image source at URL: %@", url);
-        return nil;
-    }
-    
-    NSMutableDictionary *result = [NSMutableDictionary new];
-    
-    UIImage *disparityImage = [self imageFromImageSource:source withAuxType:AUX_DISPARITY];
-    if (disparityImage) {
-        result[CFS(AUX_DISPARITY)] = disparityImage;
-    }
-    
-    UIImage *depthImage = [self imageFromImageSource:source withAuxType:AUX_DEPTH];
-    if (depthImage) {
-        result[CFS(AUX_DEPTH)] = depthImage;
-    }
-    
-    if (@available(iOS 12.0, *)) {
-        UIImage *matteImage = [self imageFromImageSource:source withAuxType:AUX_MATTE];
-        if (matteImage) {
-            result[CFS(AUX_MATTE)] = matteImage;
-        }
-    }
-    
-    return result;
-}
 
 - (nullable OKMetaParam *)metaParamsFromImageAtURL:(nonnull NSURL *)url
 {
@@ -194,16 +63,6 @@
     CFRelease(metadata);
     
     return dict;
-}
-
-- (nullable OKMetaParam *)fullMetaParamsFromImageAtURL:(nonnull NSURL *)url
-{
-    NSMutableDictionary *full = [NSMutableDictionary new];
-    
-    [full addEntriesFromDictionary:[self metaParamsFromImageAtURL:url]];
-    [full addEntriesFromDictionary:[self auxMetaParamsFromImageAtURL:url]];
-    
-    return [full copy];
 }
 
 - (nullable NSDictionary *)commonPropertiesFromImageAtURL:(nonnull NSURL *)url
@@ -264,8 +123,6 @@
     
     return result;
 }
-
-#pragma mark XMP
 
 - (nullable NSData *)xmpFromImageAtURL:(nonnull NSURL *)url
 {
@@ -478,7 +335,7 @@
         NSDictionary *objDict = valueArray[i];
         if (arType == kCGImageMetadataTypeInvalid) {
             [[objDict allKeys] enumerateObjectsUsingBlock:^(NSString *  _Nonnull objString, NSUInteger idx, BOOL * _Nonnull stopString) {
-                if ([objString isEqualToString:@"type"])
+                if ([objString isEqualToString:OKAuxType])
                 {
                     arType = (CGImageMetadataType)[objDict[objString] integerValue];
                     *stopString = YES;
@@ -489,6 +346,18 @@
                 continue;
             }
         }
+        
+        if (arType == kCGImageMetadataTypeInvalid)
+        {
+            os_log_debug(OS_LOG_DEFAULT, "Ar type missing, setup default namespace: %@ name: %@", namespace, name);
+            arType = kCGImageMetadataTypeArrayOrdered;
+        }
+        
+//        NSArray *qualifiers = nil;
+//        [objDict.allKeys enumerateObjectsUsingBlock:^(NSString * _Nonnull key, NSUInteger idx, BOOL * _Nonnull stop) {
+//            if ([key isEqualToString:Qualifiers]) {
+//            }
+//        }];
         
         NSObject<NSCopying> *arValue = [[objDict allValues] firstObject];
         
@@ -661,6 +530,30 @@
     return [dict copy];
 }
 
+- (NSDictionary *)qualifiersFromTag:(CGImageMetadataTagRef)tag
+{
+    NSArray *qualifiers = CFBridgingRelease(CGImageMetadataTagCopyQualifiers(tag));
+    
+    if (qualifiers.count == 0) {
+        return nil;
+    }
+    
+    NSMutableDictionary *result = [NSMutableDictionary new];
+    
+    for (int i = 0; i < qualifiers.count; i++) {
+        CGImageMetadataTagRef qualiTag = (__bridge CGImageMetadataTagRef)(qualifiers[i]);
+        
+        NSString *prefix = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyPrefix(qualiTag));
+        NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(qualiTag));
+        NSObject<NSCopying> *value = [self valueFromTag:qualiTag];
+        if (value == nil) continue;
+        
+        [result setObject:value forKey:[NSString stringWithFormat:@"%@:%@", prefix, name]];
+    }
+        
+    return result;
+}
+
 - (NSObject<NSCopying> *)valueFromTag:(CGImageMetadataTagRef)tag
 {
     CGImageMetadataType type = CGImageMetadataTagGetType(tag);
@@ -675,7 +568,7 @@
         case kCGImageMetadataTypeAlternateText:
         {
             NSArray *valueArray = CFBridgingRelease(CGImageMetadataTagCopyValue(tag));
-            NSMutableArray *resultArray = [NSMutableArray arrayWithObject:@{ @"type" : @(type)}];
+            NSMutableArray *resultArray = [NSMutableArray arrayWithObject:@{ OKAuxType : @(type)}];
             for (int i = 0; i < valueArray.count; i++)
             {
                 NSObject<NSCopying> *arValue = valueArray[i];
@@ -689,8 +582,14 @@
                     CGImageMetadataTagRef arTag = (__bridge CGImageMetadataTagRef)valueArray[i];
                     NSString *name = (NSString *)CFBridgingRelease(CGImageMetadataTagCopyName(arTag));
                     NSObject<NSCopying> *value = [self valueFromTag:arTag];
-                    
-                    [resultArray addObject:@{ name : value }];
+//                    NSDictionary *qualifiers = [self qualifiersFromTag:arTag];
+//                    if (qualifiers) {
+//                        [resultArray addObject:@{ name : value, Qualifiers : qualifiers }];
+//                    }
+//                    else
+                    {
+                        [resultArray addObject:@{ name : value}];
+                    }
                 }
             }
             
@@ -751,6 +650,9 @@
     NSLog(@"UNSUPPORTED TAG - %@", tag);
     return nil;
 }
+
+#pragma mark COMMON
+
 
 #pragma mark RESIZING
 
@@ -1150,16 +1052,6 @@ withProperties:(nullable NSDictionary *)props
                   });
     
     return [dateFormatter stringFromDate:localDate];
-}
-
-- (UIImage *)resize:(CGSize)size image:(UIImage *)image
-{
-    UIGraphicsBeginImageContextWithOptions(size, NO, image.scale);
-    [image drawInRect:CGRectMake(0, 0, size.width, size.height)];
-    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    return scaledImage;
 }
 
 @end

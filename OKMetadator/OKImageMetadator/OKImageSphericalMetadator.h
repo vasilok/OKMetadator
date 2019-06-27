@@ -251,6 +251,17 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (nullable NSDictionary *)extractPanoFromImageAtURL:(nonnull NSURL *)url;
 
+/*!
+ * @brief Setup GPano params. Used in common flow
+ * @param params indicates GPano params
+ * @param size indicates image size
+ * @param meta indicates destination metadata object
+ * @return result
+ */
+- (BOOL)setPanoParams:(nullable NSDictionary *)params
+            imageSize:(CGSize)size
+               toMeta:(_Nonnull CGMutableImageMetadataRef)meta;
+
 @end
 
 NS_ASSUME_NONNULL_END
