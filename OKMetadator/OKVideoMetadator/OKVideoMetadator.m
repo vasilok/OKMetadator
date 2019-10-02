@@ -92,15 +92,18 @@
     
     const AudioStreamBasicDescription *audioDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
     
-    [metaDict setObject:@(audioDescription->mSampleRate / 1024) forKey:SampleRate];
-    
-    [metaDict setObject:@(audioDescription->mChannelsPerFrame) forKey:Channels];
-    
-    [metaDict setObject:@(audioDescription->mBitsPerChannel) forKey:BitsPerChannel];
-    
-    [metaDict setObject:@(audioDescription->mFramesPerPacket) forKey:FramesPerPacket];
-    
-    [metaDict setObject:@(audioDescription->mBytesPerFrame) forKey:BytesPerFrame];
+    if (audioDescription)
+    {
+        [metaDict setObject:@(audioDescription->mSampleRate / 1024) forKey:SampleRate];
+        
+        [metaDict setObject:@(audioDescription->mChannelsPerFrame) forKey:Channels];
+        
+        [metaDict setObject:@(audioDescription->mBitsPerChannel) forKey:BitsPerChannel];
+        
+        [metaDict setObject:@(audioDescription->mFramesPerPacket) forKey:FramesPerPacket];
+        
+        [metaDict setObject:@(audioDescription->mBytesPerFrame) forKey:BytesPerFrame];
+    }
     
     return [metaDict copy];
 }
