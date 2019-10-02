@@ -54,10 +54,11 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  * @brief export video with appended 180 spatial metadata
  * @param atUrl indicates NSURL of original video
+ * @param stereo indicates stereo mode
  * @param toUrl indicates NSURL of desctination video
  * @param completion indicates success of operation.
  */
-- (void)make180VideoAtURL:(nonnull NSURL *)atUrl andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
+- (void)make180VideoAtURL:(nonnull NSURL *)atUrl stereo:(BOOL)stereo andWriteToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief export video with appended 360 spatial and metadata
@@ -72,12 +73,13 @@ NS_ASSUME_NONNULL_BEGIN
 /*!
  * @brief export video with appended 180 spatial and metadata
  * @param atUrl indicates NSURL of original video
+ * @param stereo indicates stereo mode
  * @param metaParams indicates NSDictionary of metadata with @OKMetaParam format
  * @param toUrl indicates NSURL of desctination video
  * @param completion indicates success of operation.
  * @return result
  */
-- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
+- (BOOL)make180VideoAtURL:(nonnull NSURL *)atUrl stereo:(BOOL)stereo withMetaParams:(nullable OKMetaParam *)metaParams writeToURL:(nonnull NSURL *)toUrl completion:(nullable OKSphereMetaInjectorCompletion)completion;
 
 /*!
  * @brief Getting required pano metadata for 360 video with size.
@@ -88,10 +90,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 /*!
  * @brief Getting required pano metadata for 180 video with size.
- * @param size indicates image size
+ * @param size indicates video size
  * @return NSDictionary with obvious format
  */
 - (nonnull NSDictionary *)spatial180ParamsWithSize:(CGSize)size;
+
+/*!
+ * @brief Getting required pano metadata for 180 stereo video.
+ * @param sbs indicates video layout (left-right / top=bottom)
+ * @return NSDictionary with obvious format
+ */
+- (nonnull NSDictionary *)spatialStereo180ParamsSBS:(BOOL)sbs;
 
 
 @end

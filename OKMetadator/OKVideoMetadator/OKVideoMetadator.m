@@ -129,7 +129,7 @@
     if ([formatDescriptions count] > 0)
         formatDescription = (CMFormatDescriptionRef)CFBridgingRetain([formatDescriptions firstObject]);
     
-    [metaDict setObject:@([videoTrack naturalSize]) forKey:Size];
+    [metaDict setObject:@([videoTrack naturalSize]) forKey:VideoSize];
     
     [metaDict setObject:@([videoTrack nominalFrameRate]) forKey:FrameRate];
     

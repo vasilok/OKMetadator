@@ -1,20 +1,20 @@
 #pragma once
 /*****************************************************************************
- * 
+ *
  * Copyright 2016 Varol Okan. All rights reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  ****************************************************************************/
 
 #ifndef __METADATA_UTILS_H__
@@ -47,12 +47,13 @@ static std::string SPHERICAL_XML_HEADER = "<?xml version=\"1.0\"?>"\
 
 static std::string SPHERICAL_XML_CONTENTS = "<GSpherical:Spherical>true</GSpherical:Spherical>"\
     "<GSpherical:Stitched>true</GSpherical:Stitched>"\
-    "<GSpherical:StitchingSoftware>Spherical Metadata Tool</GSpherical:StitchingSoftware>"\
-    "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>";
+"<GSpherical:StitchingSoftware>Spherical Metadata Tool</GSpherical:StitchingSoftware>";
+
+static std::string SPHERICAL_XML_EQUIRECT = "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>";
+static std::string SPHERICAL_XML_HALF_EQUIRECT = "<GSpherical:ProjectionType>half_equirectangular</GSpherical:ProjectionType>";
 
 static std::string SPHERICAL_XML_CONTENTS_WITHOUT_SOFTWARE = "<GSpherical:Spherical>true</GSpherical:Spherical>"\
-"<GSpherical:Stitched>true</GSpherical:Stitched>"\
-"<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>";
+"<GSpherical:Stitched>true</GSpherical:Stitched>";
 
 static std::string SPHERICAL_XML_CONTENTS_TOP_BOTTOM = "<GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>";
 static std::string SPHERICAL_XML_CONTENTS_LEFT_RIGHT = "<GSpherical:StereoMode>left-right</GSpherical:StereoMode>";
@@ -149,7 +150,7 @@ class Utils
     uint8_t get_descriptor_length  ( std::fstream & );
     int32_t get_expected_num_audio_components ( std::string &, uint32_t );
     int32_t  get_num_audio_channels ( Container *, std::fstream & );
-    uint32_t get_sample_description_num_channels ( Container *, std::fstream & ); 
+    uint32_t get_sample_description_num_channels ( Container *, std::fstream & );
     int32_t  get_aac_num_channels ( Container *, std::fstream & );
     uint32_t get_num_audio_tracks ( Mpeg4Container *, std::fstream & );
 

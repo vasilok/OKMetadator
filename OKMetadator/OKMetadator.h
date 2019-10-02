@@ -130,6 +130,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 // value for ProjectionType only supported
 #define equirectangular @"equirectangular"
+#define half_equirectangular @"half_equirectangular"
 
 // values for StereoMode key:
 #define mono       @"mono"
@@ -155,7 +156,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Duration  @"Duration"   // sec
 #define DateRate  @"DateRate"   // kbps
 #define FrameRate @"FrameRate"  // frames/sec
-#define Size      @"Size"       // CGSize in pixels
+#define VideoSize @"Size"       // CGSize in pixels
 
 // Audio Properties
 #define SampleRate      @"SampleRate" // kHz

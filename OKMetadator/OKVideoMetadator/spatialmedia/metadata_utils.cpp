@@ -1,19 +1,19 @@
 /*****************************************************************************
- * 
+ *
  * Copyright 2016 Varol Okan. All rights reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  ****************************************************************************/
 
 #include <iostream>
@@ -176,7 +176,7 @@ bool Utils::mpeg4_add_spherical ( Mpeg4Container *pMPEG4, std::fstream &inFile, 
             bAdded = true;
             break;
           }
-        }        
+        }
         if ( bAdded )  {
           if ( ! pBox->add ( spherical_uuid ( strMetadata ) ) )
             return true;
@@ -225,7 +225,7 @@ bool Utils::mpeg4_add_spatial_audio ( Mpeg4Container *pMPEG4, std::fstream &inFi
         inFile.seekg( iPos );
         inFile.read ( name, 4 );
         if ( memcmp ( name, constants::TAG_SOUN, 4 ) == 0 )
-          return inject_spatial_audio_atom ( inFile, pSub, pAudio ); 
+          return inject_spatial_audio_atom ( inFile, pSub, pAudio );
       }
     }
   }
@@ -250,7 +250,7 @@ bool inArray ( char *pName, const char **ppArray, int iSize )
   for ( int t=0; t<iSize; t++ )  {
     if ( memcmp ( pName, ppArray[t], 4 ) == 0 )
       return true;
-  }  
+  }
 
   return false;
 }
@@ -335,21 +335,21 @@ std::map<std::string, std::string> Utils::parse_spherical_xml ( uint8_t *pConten
   std::string strText;
   mxml_node_t *pChild = mxmlGetFirstChild ( pNode );
   while ( pChild != NULL )  {
-    const char *pTag  = mxmlGetElement ( pChild ); 
+    const char *pTag  = mxmlGetElement ( pChild );
     const char *pText = mxmlGetOpaque  ( pChild );
     if ( pTag != NULL )  {
       const char *p = strchr ( pTag, ':' );
       if ( p )
-        pTag = p+1; 
+        pTag = p+1;
       if ( inArray ( (char *)pTag, SPHERICAL_TAGS_LIST, iArraySize ) )  {
         strText = "";
         if ( pText )
           strText = pText;
-        std::cout << "\t\t" << pTag << " = " << strText << std::endl;
+        //std::cout << "\t\t" << pTag << " = " << strText << std::endl;
         m_mapSphericalDictionary[pTag] = strText;
       }
       else  {
-        std::cout << "\t\tUnknown: " << pTag<< " = " << strText << std::endl;
+        //std::cout << "\t\tUnknown: " << pTag<< " = " << strText << std::endl;
         // tag = child.tag
         //   if child.tag[:len(spherical_prefix)] == spherical_prefix:
         //      tag = child.tag[len(spherical_prefix):]
@@ -390,7 +390,7 @@ ParsedMetadata *Utils::parse_spherical_mpeg4 ( Mpeg4Container *pMPEG4, std::fstr
     std::stringstream ss;
     ss << "Track " << iTrackNum++;
     std::string trackName = ss.str ( );
-    std::cout << "\t" << trackName << std::endl;
+    //std::cout << "\t" << trackName << std::endl;
 
     std::vector<Box *>::iterator it2 = pBox->m_listContents.begin ( );
     while ( it2 != pBox->m_listContents.end ( ) )  {
@@ -413,7 +413,7 @@ ParsedMetadata *Utils::parse_spherical_mpeg4 ( Mpeg4Container *pMPEG4, std::fstr
             pContents = (uint8_t *)pNewedBuffer;
           }
           // metadata.video[trackName] = parse_spherical_xml(contents, console)
-          pMetadata->m_video[trackName] = parse_spherical_xml ( pContents ); 
+          pMetadata->m_video[trackName] = parse_spherical_xml ( pContents );
         }
       }
 
@@ -436,7 +436,7 @@ ParsedMetadata *Utils::parse_spherical_mpeg4 ( Mpeg4Container *pMPEG4, std::fstr
           std::vector<Box *>::iterator it4 = pMDIA->m_listContents.begin ( );
           while ( it4 != pMDIA->m_listContents.end ( ) )  {
             Container *pSTBL = (Container *)*it4++;
-            if ( memcmp ( pSTBL->m_name, constants::TAG_STBL, 4 ) != 0 )  
+            if ( memcmp ( pSTBL->m_name, constants::TAG_STBL, 4 ) != 0 )
               continue;
 
             std::vector<Box *>::iterator it5 = pSTBL->m_listContents.begin ( );
@@ -457,7 +457,7 @@ ParsedMetadata *Utils::parse_spherical_mpeg4 ( Mpeg4Container *pMPEG4, std::fstr
                   Container *pItem = (Container *)*it7++;
                   if ( memcmp ( pItem->m_name, constants::TAG_SA3D, 4 ) == 0 )  {
                     SA3DBox *pSA = (SA3DBox *)pItem;
-                    pSA->print_box ( );
+                    //pSA->print_box ( );
                     pMetadata->m_pAudio = new SA3DBox ( *pSA );
                   }
                 }
@@ -486,7 +486,7 @@ ParsedMetadata * Utils::parse_mpeg4 ( std::string &strFileName )
     std::cerr << "Error, file could not be opened." << std::endl;
     return NULL;
   }
-  std::cout << "File loaded." << std::endl;
+  //std::cout << "File loaded." << std::endl;
   return parse_spherical_mpeg4 ( pMPEG4, file );
 }
 
@@ -512,7 +512,7 @@ void Utils::inject_mpeg4 ( std::string &strInFile, std::string &strOutFile, Meta
       std::cerr << "Error failed to insert spatial audio data" << std::endl;
     }
   }
-  std::cout << "Saved file settings" << std::endl;
+  //std::cout << "Saved file settings" << std::endl;
   parse_spherical_mpeg4 ( pMPEG4, inFile );
   
   std::fstream outFile ( strOutFile.c_str ( ), std::ios::out | std::ios::binary );
@@ -537,9 +537,9 @@ ParsedMetadata * Utils::parse_metadata ( std::string &strFile )
   if ( idx != std::string::npos )
       strExt = strFile.substr ( idx );
 
-  std::cout << "Processing: " << strFile << std::endl;
+  // << "Processing: " << strFile << std::endl;
   if ( ! inArray ( (char *)strExt.c_str ( ), MPEG_FILE_EXTENSIONS, iArraySize ) )  {
-    std::cerr << "Unknown file type" << std::endl;
+    //std::cerr << "Unknown file type" << std::endl;
     return NULL;
   }
   return parse_mpeg4 ( strFile );
@@ -563,9 +563,9 @@ void Utils::inject_metadata ( std::string &strInFile, std::string &strOutFile, M
   if ( idx != std::string::npos )
     strExt = strInFile.substr ( idx );
 
-  std::cout << "Processing: " << strInFile << std::endl;
+  //std::cout << "Processing: " << strInFile << std::endl;
   if ( ! inArray ( (char *)strExt.c_str ( ), MPEG_FILE_EXTENSIONS, iArraySize ) )  {
-    std::cerr << "Unknown file type" << std::endl;
+    //std::cerr << "Unknown file type" << std::endl;
     return;
   }
   return inject_mpeg4 ( strInFile, strOutFile, pMetadata );
@@ -576,12 +576,15 @@ std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo
   // Configure inject xml
   static std::string empty;
   std::string additional_xml;
+    std::string projection = SPHERICAL_XML_EQUIRECT;
     
   if ( stereo == SpatialMedia::Parser::SM_TOP_BOTTOM ) {
     additional_xml += SPHERICAL_XML_CONTENTS_TOP_BOTTOM;
+      projection = SPHERICAL_XML_HALF_EQUIRECT;
   }
   if ( stereo == SpatialMedia::Parser::SM_LEFT_RIGHT ) {
     additional_xml += SPHERICAL_XML_CONTENTS_LEFT_RIGHT;
+      projection = SPHERICAL_XML_HALF_EQUIRECT;
   }
 
   if ( crop )  {
@@ -630,7 +633,7 @@ std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo
     delete buffer;
   }
     
-  m_strSphericalXML = SPHERICAL_XML_HEADER + SPHERICAL_XML_CONTENTS + additional_xml + SPHERICAL_XML_FOOTER;
+  m_strSphericalXML = SPHERICAL_XML_HEADER + SPHERICAL_XML_CONTENTS + projection + additional_xml + SPHERICAL_XML_FOOTER;
   return m_strSphericalXML;
 }
 
@@ -642,11 +645,15 @@ std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo
     
     std::string software_xml = "<GSpherical:StitchingSoftware>" + software + "</GSpherical:StitchingSoftware>";
     
+    std::string projection = SPHERICAL_XML_EQUIRECT;
+    
     if ( stereo == SpatialMedia::Parser::SM_TOP_BOTTOM ) {
         additional_xml += SPHERICAL_XML_CONTENTS_TOP_BOTTOM;
+        projection = SPHERICAL_XML_HALF_EQUIRECT;
     }
-    if ( stereo == SpatialMedia::Parser::SM_LEFT_RIGHT ) {
+    else if ( stereo == SpatialMedia::Parser::SM_LEFT_RIGHT ) {
         additional_xml += SPHERICAL_XML_CONTENTS_LEFT_RIGHT;
+        projection = SPHERICAL_XML_HALF_EQUIRECT;
     }
     
     if ( crop )  {
@@ -695,7 +702,7 @@ std::string &Utils::generate_spherical_xml ( SpatialMedia::Parser::enMode stereo
         delete buffer;
     }
     
-    m_strSphericalXML = SPHERICAL_XML_HEADER + SPHERICAL_XML_CONTENTS_WITHOUT_SOFTWARE + software_xml + additional_xml + SPHERICAL_XML_FOOTER;
+    m_strSphericalXML = SPHERICAL_XML_HEADER + SPHERICAL_XML_CONTENTS_WITHOUT_SOFTWARE + projection + software_xml + additional_xml + SPHERICAL_XML_FOOTER;
     return m_strSphericalXML;
 }
 
@@ -742,7 +749,7 @@ int32_t Utils::get_num_audio_channels ( Container *pSTSD, std::fstream &inFile )
       return get_aac_num_channels ( pSample, inFile );
     else if ( inArray ( pSample->m_name, constants::SOUND_SAMPLE_DESCRIPTIONS, iArraySize ) )
       return get_sample_description_num_channels ( pSample, inFile );
-  } 
+  }
   return -1;
 }
 
@@ -753,7 +760,7 @@ uint32_t Utils::get_sample_description_num_channels ( Container *pSample, std::f
   int iPos = inFile.tellg ( );
   inFile.seekg ( pSample->content_start ( ) + 8 );
 
-  int16_t iAudioChannels, iSampleSizeBytes; 
+  int16_t iAudioChannels, iSampleSizeBytes;
   int16_t iVersion  = Box::readInt16 ( inFile );
   int16_t iRevLevel = Box::readInt16 ( inFile );
   int32_t iVendor   = Box::readInt32 ( inFile );

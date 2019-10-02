@@ -195,7 +195,7 @@
     }
     else if (_videoMetadator) {
         NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];
-        [_videoMetadator make180VideoAtURL:_URL andWriteToURL:tempURL completion:^(BOOL success)
+        [_videoMetadator make180VideoAtURL:_URL stereo:YES andWriteToURL:tempURL completion:^(BOOL success)
          {
              if (success) {
                  [self.librarian saveVideoToLibrary:tempURL withCompletion:^(BOOL success) {
