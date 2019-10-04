@@ -158,7 +158,7 @@
 {
     NSAssert(image && url && xmpData, @"Unexpected NIL!");
     
-    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
     if (source == NULL)
     {
         os_log_error(OS_LOG_DEFAULT, "Could not create image source from image");
@@ -988,7 +988,7 @@ withProperties:(nullable NSDictionary *)props
                atURL:(nonnull NSURL *)url
 {
     BOOL result = YES;
-    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
     if (source == NULL)
     {
         os_log_error(OS_LOG_DEFAULT, "Could not create image source from image");
