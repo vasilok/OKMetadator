@@ -11,6 +11,34 @@
 
 #import <Foundation/Foundation.h>
 
+
+// APPLE FRAMEWORK DEFINES
+// Public, common namespaces.
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceExif IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceExifAux IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceExifEX IMAGEIO_AVAILABLE_STARTING(10.9, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceDublinCore IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceIPTCCore IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceIPTCExtension IMAGEIO_AVAILABLE_STARTING(10.13.4, 11.3);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespacePhotoshop IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceTIFF IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceXMPBasic IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataNamespaceXMPRights IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//
+//// Public, common prefixes.
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixExif IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixExifAux IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixExifEX IMAGEIO_AVAILABLE_STARTING(10.9, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixDublinCore IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixIPTCCore IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixIPTCExtension IMAGEIO_AVAILABLE_STARTING(10.13.4, 11.3);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixPhotoshop IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixTIFF IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixXMPBasic IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+//IMAGEIO_EXTERN const CFStringRef  kCGImageMetadataPrefixXMPRights IMAGEIO_AVAILABLE_STARTING(10.8, 7.0);
+
+
+
 /*!
  @abstract @MetaFormat = NSDictionary {"namespace" : {"prefix:name" : value}}
  */
@@ -29,13 +57,22 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
  */
 
 // Available Image namespace
-#define PanoNamespace   @"http://ns.google.com/photos/1.0/panorama/"
-#define GoogleNamespace @"http://ns.google.com/photos/1.0/image/"
+
 #define AppleNamespace  @"http://ns.apple.com/ImageIO/1.0/"
 #define AppleDepthNamespace  @"http://ns.apple.com/depthData/1.0/"
-#define GDepthNamespace  @"http://ns.google.com/photos/1.0/depthmap/"
-#define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
 #define AppleMatteNamespace  @"http://ns.apple.com/portraitEffectsMatte/1.0/"
+
+#define PanoNamespace   @"http://ns.google.com/photos/1.0/panorama/"
+#define GoogleNamespace @"http://ns.google.com/photos/1.0/image/"
+#define GDepthNamespace  @"http://ns.google.com/photos/1.0/depthmap/"
+
+#define AdobeExifNamespace @"http://ns.adobe.com/exif/1.0/"
+#define AdobeXMPNamespace @"http://ns.adobe.com/xap/1.0/"
+#define AdobePhotoshopNamespace @"http://ns.adobe.com/photoshop/1.0/"
+#define AdobeTIFFNamespace @"http://ns.adobe.com/tiff/1.0/"
+
+
+
 
 // Available Image prefixes
 #define GPano   @"GPano"
@@ -46,9 +83,17 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define Mime   @"Mime"
 #define hasXMP @"hasXMP"
+#define hasIIM @"hasIIM"
 
 #define exif @"exif"
+#define xmp @"xmp"
+#define photoshop @"photoshop"
+#define tiff @"tiff"
+
 #define CustomRendered @"CustomRendered"
+#define CustomRenderedPortrait 8
+#define CustomRenderedPanorama 6
+#define CustomRenderedHDR      3
 
 #define Qualifiers @"Qualifiers"
 
@@ -72,6 +117,24 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 #define Quality @"Quality"
 
 #define AMatte @"portraitEffectsMatte"
+
+// xmp keys
+#define CreateDate @"CreateDate"
+#define CreatorTool @"CreatorTool"
+#define ModifyDate @"ModifyDate"
+
+// ps key
+#define DateCreated @"DateCreated"
+
+// tiff
+#define Make @"Make"
+#define Model @"Model"
+#define Orientation @"Orientation"
+#define ResolutionUnit @"ResolutionUnit"
+#define TileWidth @"TileWidth"
+#define TileLength @"TileLength"
+#define XResolution @"XResolution"
+#define YResolution @"YResolution"
 
 // Image spherical specific Keys
 #define FirstPhotoDate               @"FirstPhotoDate"
@@ -143,6 +206,8 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define CFS(stringref) CFBridgingRelease(stringref)
 
+#define MimeType @"image/jpeg"
+
 // value for GDepth
 #define RangeInverse @"RangeInverse"
 #define RangeLinear  @"RangeLinear"
@@ -168,6 +233,7 @@ typedef void (^OKSphereMetaInjectorCompletion)(BOOL);
 
 #define OKAuxType  @"OKAuxType"
 
+#define OKSign @"OKMetadator"
 
 
 @interface OKMetadator : NSObject

@@ -188,6 +188,9 @@
         NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
         if ([_imageMetadator make180Image:_image withMeta:_meta outputURL:tempURL] )
         {
+            OKMetaParam *test = [_imageMetadator metaParamsFromImageAtURL:tempURL];
+            NSLog(@"MAKED 180: %@", test);
+            
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 [self showResult:success];
             }];
@@ -209,16 +212,29 @@
 - (IBAction)make360:(id)sender
 {
     if (_imageMetadator) {
-        NSURL *tempURL = [Librarian tempImageURLWithExtension:nil];
-        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
+        NSURL *tempURL = [Librarian tempImageURLWithExtension:[_URL pathExtension]];
+        if ([_imageMetadator make360ImageAtURL:_URL outputURL:tempURL])
         {
+            OKMetaParam *test = [_imageMetadator metaParamsFromImageAtURL:tempURL];
+            NSLog(@"MAKED 360: %@", test);
+
             [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
                 [self showResult:success];
             }];
         }
+        
+//        if ([_imageMetadator make360Image:_image withMeta:_meta outputURL:tempURL] )
+//        {
+//            OKMetaParam *test = [_imageMetadator metaParamsFromImageAtURL:tempURL];
+//            NSLog(@"MAKED 360: %@", test);
+//
+//            [_librarian saveImageToLibrary:tempURL withCompletion:^(BOOL success) {
+//                [self showResult:success];
+//            }];
+//        }
     }
     else if (_videoMetadator) {
-        NSURL *tempURL = [Librarian tempVideoURLWithExtension:nil];
+        NSURL *tempURL = [Librarian tempVideoURLWithExtension:[_URL pathExtension]];
         [_videoMetadator make360VideoAtURL:_URL andWriteToURL:tempURL completion:^(BOOL success)
          {
             if (success) {

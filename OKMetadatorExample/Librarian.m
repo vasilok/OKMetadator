@@ -95,8 +95,13 @@
          NSURL *imageURL = info[@"PHImageFileURLKey"];
          
          NSError *error;
-         BOOL success = [[NSFileManager defaultManager] copyItemAtURL:imageURL toURL:url error:&error];
-         
+         BOOL success = NO;
+        
+         if (imageURL)
+         {
+            success = [[NSFileManager defaultManager] copyItemAtURL:imageURL toURL:url error:&error];
+         }
+        
          if (!success && imageData)
          {
              success = [imageData writeToFile:url.path atomically:YES];

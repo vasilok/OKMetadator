@@ -143,12 +143,12 @@
         return nil;
     }
     
-    NSData *xmp = CFBridgingRelease(CGImageMetadataCreateXMPData(metadata, NULL));
+    NSData *xmpData = CFBridgingRelease(CGImageMetadataCreateXMPData(metadata, NULL));
     
     CFRelease(source);
     CFRelease(metadata);
     
-    return xmp;
+    return xmpData;
 }
 
 - (BOOL)writeImage:(nonnull UIImage *)image

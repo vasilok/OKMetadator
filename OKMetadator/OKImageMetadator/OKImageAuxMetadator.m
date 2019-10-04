@@ -128,20 +128,26 @@
     OKMetaParam *depth = (OKMetaParam *)aux[CFS(AUX_DEPTH)];
     if (depth) {
         NSDictionary *depthDict = [self auxMetadataFromParams:depth withType:AUX_DEPTH];
-        [dictMeta setObject:depthDict forKey:CFS(AUX_DEPTH)];
+        if (depthDict) {
+            [dictMeta setObject:depthDict forKey:CFS(AUX_DEPTH)];
+        }
     }
     
     OKMetaParam *disparity = (OKMetaParam *)aux[CFS(AUX_DISPARITY)];
     if (disparity) {
         NSDictionary *dispDict = [self auxMetadataFromParams:disparity withType:AUX_DISPARITY];
-        [dictMeta setObject:dispDict forKey:CFS(AUX_DISPARITY)];
+        if (dispDict) {
+            [dictMeta setObject:dispDict forKey:CFS(AUX_DISPARITY)];
+        }
     }
     
     if (@available(iOS 12.0, *)) {
         OKMetaParam *matte = (OKMetaParam *)aux[CFS(AUX_MATTE)];
         if (matte) {
             NSDictionary *matteDict = [self auxMetadataFromParams:matte withType:AUX_MATTE];
-            [dictMeta setObject:matteDict forKey:CFS(AUX_MATTE)];
+            if (matteDict) {
+                [dictMeta setObject:matteDict forKey:CFS(AUX_MATTE)];
+            }
         }
     }
     
@@ -155,7 +161,7 @@
                                                          (CFStringRef)exif,
                                                          (CFStringRef)CustomRendered,
                                                          kCGImageMetadataTypeString,
-                                                         (__bridge CFTypeRef)@(8));
+                                                         (__bridge CFTypeRef)@(CustomRenderedPortrait));
     if (tag) {
         CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(exif, CustomRendered), tag);
         CFRelease(tag);

@@ -364,37 +364,12 @@
             imageAtURL:(NSURL *)url
              outputURL:(NSURL *)outputURL
 {
-    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
-    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
+    UIImage *image = [UIImage imageWithContentsOfFile:url.filePathURL.path];
+    if (image == nil) return NO;
     
-    NSDictionary *props = [self propertiesFromImageAtURL:url];
+    OKMetaParam *meta = [self metaParamsFromImageAtURL:url];
     
-    CGSize size = CGSizeMake([props[(NSString *)kCGImagePropertyPixelWidth] intValue], [props[(NSString *)kCGImagePropertyPixelHeight] intValue]);
-    
-    CGFloat aspect = is360 ? [self pano360Aspect] : [self pano180Aspect];
-    CGFloat delta = aspect/(size.width/size.height);
-    CGSize renderSize = CGSizeMake(size.width * delta, size.height);
-    
-    NSDictionary *panoParams = is360 ? [self pano360ParamsWithSize:renderSize] : [self pano180ParamsWithSize:renderSize];
-    NSDictionary *allParams = [props mutableCopy];
-    [allParams setValuesForKeysWithDictionary:panoParams];
-    
-    BOOL result = NO;
-    if (size.width / size.height != aspect)
-    {
-        if ([self resizeAspect:aspect imageAtURL:url andWriteURL:tempURL])
-        {
-            result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
-            
-            [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
-        }
-    }
-    else
-    {
-        result = [self processInjectionForImageURL:url output:outputURL withMetaParam:allParams copyOld:YES];
-    }
-    
-    return result;
+    return [self processMake360:is360 image:image withMeta:meta outputURL:outputURL];
 }
 
 - (BOOL)processMake360:(BOOL)is360
@@ -402,28 +377,30 @@
               withMeta:(nullable OKMetaParam *)meta
              outputURL:(NSURL *)outputURL
 {
-    NSString *tempName = [NSString stringWithFormat:@"TPM%ld", (long)CFAbsoluteTimeGetCurrent()];
-    NSURL *tempURL = [[NSURL fileURLWithPath:[[NSTemporaryDirectory() stringByAppendingPathComponent:tempName] stringByAppendingPathExtension:@"jpg"]] filePathURL];
-    
     CGSize size = CGSizeMake(image.size.width, image.size.height);
-    
     CGFloat aspect = is360 ? [self pano360Aspect] : [self pano180Aspect];
     CGFloat delta = aspect/(size.width/size.height);
     CGSize renderSize = CGSizeMake(size.width * delta, size.height);
     
     NSDictionary *panoParams = is360 ? [self pano360ParamsWithSize:renderSize] : [self pano180ParamsWithSize:renderSize];
     NSMutableDictionary *allParams = meta ? [meta mutableCopy] : [NSMutableDictionary new];
-    [allParams setValue:panoParams forKey:(NSString *)PanoNamespace];
     
-    BOOL result = NO;
-    if ([self resizeAspect:aspect image:image withProperties:nil andWriteURL:tempURL])
-    {
-        result = [self processInjectionForImageURL:tempURL output:outputURL withMetaParam:allParams copyOld:YES];
-        
-        [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil];
+    NSDictionary *allPano;
+    if ([meta valueForKey:(NSString *)PanoNamespace]) {
+        allPano = [[meta valueForKey:(NSString *)PanoNamespace] mutableCopy];
+        [panoParams enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+            [allPano setValue:obj forKey:key];
+        }];
+    }
+    else {
+        allPano = panoParams;
     }
     
-    return result;
+    [allParams setValue:allPano forKey:(NSString *)PanoNamespace];
+        
+    UIImage *resized = [self resizeAspect:aspect image:image];
+    
+    return [self processInjectionForImage:resized output:outputURL withMetaParam:allParams copyOld:YES];
 }
 
 - (BOOL)processMake:(CGFloat)horizontalFOV verticalFOV:(CGFloat)verticalFOV meta:(OKMetaParam *)meta image:(UIImage *)image outputURL:(NSURL *)outputURL
@@ -647,7 +624,7 @@
     [self setTagForPanoKey:UsePanoramaViewer value:@"True" toMeta:meta];
     
     NSNumber *heading = params[GP(PoseHeadingDegrees)];
-    if ((heading != nil) && [self verifyParam:heading forPanoKey:PoseHeadingDegrees]) {
+    if (heading != nil) {
         [self setTagForPanoKey:PoseHeadingDegrees value:(__bridge CFTypeRef)(heading) toMeta:meta];
     }
     else { // for Google maps!
@@ -655,12 +632,12 @@
     }
     
     NSNumber *pitch = params[GP(PosePitchDegrees)];
-    if ((pitch != nil) && [self verifyParam:heading forPanoKey:PosePitchDegrees]) {
+    if (pitch != nil) {
         [self setTagForPanoKey:PosePitchDegrees value:(__bridge CFTypeRef)(pitch) toMeta:meta];
     }
     
     NSNumber *roll = params[GP(PoseRollDegrees)];
-    if ((roll != nil) && [self verifyParam:heading forPanoKey:PoseRollDegrees]){
+    if (roll != nil) {
         [self setTagForPanoKey:PoseRollDegrees value:(__bridge CFTypeRef)(roll) toMeta:meta];
     }
     

@@ -19,7 +19,7 @@
                    withMetaParam:(OKMetaParam *)param
                          copyOld:(BOOL)copyOld
 {
-    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImageJPEGRepresentation(image, 1.0), NULL);
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)UIImagePNGRepresentation(image), NULL);
     if (source == NULL)
     {
         os_log_error(OS_LOG_DEFAULT, "Could not create source from image");
@@ -36,7 +36,7 @@
 - (BOOL)processInjectionForImageURL:(NSURL *)url
                              output:(NSURL *)outputURL
                       withMetaParam:(OKMetaParam *)param
-                            copyOld:(BOOL)copyOld
+                            copyOld:(BOOL)copyOld DEPRECATED_ATTRIBUTE
 {
     CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
     if (source == NULL)
@@ -71,7 +71,7 @@
     CGFloat width = CGImageGetWidth(image);
     CGFloat height = CGImageGetHeight(image);
     os_log_debug(OS_LOG_DEFAULT, "Image width: %f, height: %f", width, height);
-    
+        
     CGImageMetadataRef metadata = CGImageSourceCopyMetadataAtIndex(source, 0, NULL);
     if (metadata == NULL)
     {
@@ -82,55 +82,66 @@
     
     CGMutableImageMetadataRef destMetadata = copyOld ? CGImageMetadataCreateMutableCopy(metadata) : CGImageMetadataCreateMutable();
     
+    NSDictionary *googleParam = param[(NSString *)GoogleNamespace];
+    if ([self setGoogleParams:googleParam toMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting Google params fails");
+    }
+    
     NSDictionary *panoParam = param[(NSString *)PanoNamespace];
-    if (panoParam != nil && copyOld)
+    if (panoParam != nil)
     {
         if ([self setPanoParams:panoParam imageSize:CGSizeMake(width, height) toMeta:destMetadata] == NO)
         {
             os_log_error(OS_LOG_DEFAULT, "Setting Pano params fails");
         }
-    }
-    
-    NSDictionary *googleParam = param[(NSString *)GoogleNamespace];
-    if (googleParam != nil && copyOld)
-    {
-        if ([self setGoogleParams:googleParam toMeta:destMetadata] == NO)
+
+        if ([self setCustomRendered:CustomRenderedPanorama toMeta:destMetadata] == NO)
         {
-            os_log_error(OS_LOG_DEFAULT, "Setting Google params fails");
+            os_log_error(OS_LOG_DEFAULT, "Setting Pano Custom Rendered params fails");
         }
     }
     
     NSDictionary *appleParam = param[(NSString *)AppleNamespace];
-    if (appleParam != nil && copyOld)
+    if ([self setAppleParams:appleParam toMeta:destMetadata] == NO)
     {
-        if ([self setAppleParams:appleParam toMeta:destMetadata] == NO)
-        {
-            os_log_error(OS_LOG_DEFAULT, "Setting Apple params fails");
-        }
+        os_log_error(OS_LOG_DEFAULT, "Setting Apple params fails");
     }
-    
-    NSMutableDictionary *other = [param mutableCopy];
-    [other removeObjectForKey:GoogleNamespace];
-    [other removeObjectForKey:AppleNamespace];
     
     NSMutableDictionary *auxDict = [NSMutableDictionary new];
-    [auxDict setObject:param[CFS(AUX_DEPTH)] forKey:CFS(AUX_DEPTH)];
-    [auxDict setObject:param[CFS(AUX_DISPARITY)] forKey:CFS(AUX_DISPARITY)];
-    if (@available(iOS 12.0, *)) {
-        [auxDict setObject:param[CFS(AUX_MATTE)] forKey:CFS(AUX_MATTE)];
+    if (param[CFS(AUX_DEPTH)]) {
+        [auxDict setObject:param[CFS(AUX_DEPTH)] forKey:CFS(AUX_DEPTH)];
     }
-    
-    //Removes Auxiliary meta
+    if (param[CFS(AUX_DISPARITY)]) {
+        [auxDict setObject:param[CFS(AUX_DISPARITY)] forKey:CFS(AUX_DISPARITY)];
+    }
+    if (@available(iOS 12.0, *)) {
+        if (param[CFS(AUX_MATTE)]) {
+            [auxDict setObject:param[CFS(AUX_MATTE)] forKey:CFS(AUX_MATTE)];
+        }
+    }
+
+    //Remove processed
+    NSMutableDictionary *other = [param mutableCopy];
+    [other removeObjectForKey:PanoNamespace];
+    [other removeObjectForKey:GoogleNamespace];
+    [other removeObjectForKey:AppleNamespace];
     [other removeObjectForKey:CFS(AUX_DEPTH)];
     [other removeObjectForKey:CFS(AUX_DISPARITY)];
     if (@available(iOS 12.0, *)) {
         [other removeObjectForKey:CFS(AUX_MATTE)];
     }
-    
+
     if ([self setOtherParams:[other copy] toMeta:destMetadata] == NO)
     {
         os_log_error(OS_LOG_DEFAULT, "Setting other params fails");
     }
+    
+    if ([self setXMPSectionToMeta:destMetadata] == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Setting xmp params fails");
+    }
+    
     
     NSMutableData *destData = [NSMutableData data];
     CFStringRef UTI = CGImageSourceGetType(source);
@@ -173,7 +184,7 @@
         return NO;
     }
     os_log_info(OS_LOG_DEFAULT, "Injected image meta:\n%@", destMetadata);
-    
+        
     CFRelease(metadata);
     CFRelease(destMetadata);
     CFRelease(destination);
@@ -208,7 +219,7 @@
                              (CFStringRef)GImage,
                              (CFStringRef)Mime,
                              kCGImageMetadataTypeString,
-                             (CFTypeRef)@"image/jpeg");
+                             (CFTypeRef)MimeType);
     
     BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(GImage, Mime), mimeTag);
     CFRelease(mimeTag);
@@ -252,6 +263,78 @@
     BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(ImageIO, hasXMP), tag);
     CFRelease(tag);
     
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AppleNamespace,
+                             (CFStringRef)ImageIO,
+                             (CFStringRef)hasIIM,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"true");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(ImageIO, hasIIM), tag);
+    CFRelease(tag);
+    
+    return result;
+}
+
+- (BOOL)setCustomRendered:(NSInteger)flag toMeta:(_Nonnull CGMutableImageMetadataRef)meta
+{
+    CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AdobeExifNamespace, (CFStringRef)exif, NULL);
+    CGImageMetadataTagRef tag = CGImageMetadataTagCreate((CFStringRef)AdobeExifNamespace,
+                                                         (CFStringRef)exif,
+                                                         (CFStringRef)CustomRendered,
+                                                         kCGImageMetadataTypeString,
+                                                         (__bridge CFTypeRef)@(flag));
+    if (tag) {
+        CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(exif, CustomRendered), tag);
+        CFRelease(tag);
+        
+        return YES;
+    }
+    
+    return NO;
+}
+
+- (BOOL)setXMPSectionToMeta:(_Nonnull CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AdobeXMPNamespace, (CFStringRef)xmp, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", AdobeXMPNamespace, error);
+        return NO;
+    }
+    
+    // ?????
+//    CGImageMetadataTagRef tag =
+//    CGImageMetadataTagCreate((CFStringRef)AdobeXMPNamespace,
+//                             (CFStringRef)xmp,
+//                             (CFStringRef)CreateDate,
+//                             kCGImageMetadataTypeString,
+//                             (CFTypeRef)@"2019-10-03T18:29:33.644");
+//
+//    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(xmp, CreateDate), tag);
+//    CFRelease(tag);
+    
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeXMPNamespace,
+                             (CFStringRef)xmp,
+                             (CFStringRef)ModifyDate,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)[self timestamp]);
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(xmp, ModifyDate), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeXMPNamespace,
+                             (CFStringRef)xmp,
+                             (CFStringRef)CreatorTool,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)OKSign);
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(xmp, CreatorTool), tag);
+    CFRelease(tag);
+    
     return result;
 }
 
@@ -274,6 +357,112 @@
         }
         return true;
     });
+    
+    return result;
+}
+
+- (NSString *)timestamp
+{
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc]init];
+    dateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss";
+    [dateFormatter setTimeZone:[NSTimeZone timeZoneWithAbbreviation:@"UTC"]];
+    return [dateFormatter stringFromDate:[NSDate date]];
+}
+
+// ???????
+- (BOOL)setPhotoshopToMeta:(_Nonnull CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AdobePhotoshopNamespace, (CFStringRef)photoshop, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", AdobePhotoshopNamespace, error);
+        return NO;
+    }
+    
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobePhotoshopNamespace,
+                             (CFStringRef)photoshop,
+                             (CFStringRef)DateCreated,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"2019-10-03T18:29:33.644");
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(photoshop, DateCreated), tag);
+    CFRelease(tag);
+    
+    return result;
+}
+
+// ???????
+- (BOOL)setTiffSectionToMeta:(_Nonnull CGMutableImageMetadataRef)meta
+{
+    CFErrorRef error;
+    
+    if(CGImageMetadataRegisterNamespaceForPrefix(meta, (CFStringRef)AdobeTIFFNamespace, (CFStringRef)tiff, &error) == NO)
+    {
+        os_log_error(OS_LOG_DEFAULT, "Register namespace: %@ with error: %@", AdobeTIFFNamespace, error);
+        return NO;
+    }
+    
+    CGImageMetadataTagRef tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)Make,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"Apple");
+    
+    BOOL result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, Make), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)Orientation,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"1");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, Orientation), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)TileWidth,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"512");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, TileWidth), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)TileLength,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"512");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, TileLength), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)XResolution,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"72/1");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, XResolution), tag);
+    CFRelease(tag);
+    
+    tag =
+    CGImageMetadataTagCreate((CFStringRef)AdobeTIFFNamespace,
+                             (CFStringRef)tiff,
+                             (CFStringRef)YResolution,
+                             kCGImageMetadataTypeString,
+                             (CFTypeRef)@"72/1");
+    
+    result = CGImageMetadataSetTagWithPath(meta, NULL, (CFStringRef)PP(tiff, YResolution), tag);
+    CFRelease(tag);
     
     return result;
 }
